@@ -17,7 +17,7 @@ Além do software, o projeto documenta **mockups de telas**, **arquitetura em ca
 
 ## Quick Access
 
-Legenda: ✅ disponível · 📋 a criar
+Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 
 ### Visão geral
 
@@ -25,35 +25,28 @@ Legenda: ✅ disponível · 📋 a criar
 |--------|---------|---------|
 | ✅ | Product Backlog | [`docs/scrum/product_backlog/product_backlog_ze_mercearia.md`](docs/scrum/product_backlog/product_backlog_ze_mercearia.md) |
 | ✅ | Sprint Backlog (3 sprints) | [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md`](docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md) |
-| 📋 | Kanban (Scrumban) | [GitHub Projects](https://github.com/ErrorSquad-ABP/FATEC-JCR-3DSM-GAP-2026-1/projects) |
+| ✅ | Kanban (Scrumban) | [GitHub Projects #2](https://github.com/orgs/ErrorSquad-ABP/projects/2) |
 
-### Artefatos Scrum
+### Scrum Master (processo)
 
 | Status | Artefato | Caminho |
 |--------|----------|---------|
-| 📋 | Product Goal / Visão | `docs/scrum/vision/product_goal.md` |
-| 📋 | Definition of Done | `docs/scrum/definition_of_done.md` |
-| 📋 | Sprint Planning | `docs/scrum/ceremonies/sprint_planning.md` |
-| 📋 | Daily Scrum | `docs/scrum/ceremonies/daily_scrum.md` |
-| 📋 | Sprint Review | `docs/scrum/ceremonies/sprint_review.md` |
-| 📋 | Sprint Retrospective | `docs/scrum/ceremonies/sprint_retrospective.md` |
-| 📋 | Incrementos por sprint | `docs/scrum/increments/` |
+| ✅ | Guia SM + estado do projeto | [`docs/scrum/sm/guia_scrum_master.md`](docs/scrum/sm/guia_scrum_master.md) |
+| ✅ | RACI · Acordos · Impedimentos | [`docs/scrum/sm/`](docs/scrum/sm/README.md) |
+| ✅ | Definition of Done v1.0 | [`docs/scrum/definition_of_done.md`](docs/scrum/definition_of_done.md) |
+| ✅ | Sprint Planning 1 | [`docs/scrum/ceremonies/sprint_01/sprint_planning.md`](docs/scrum/ceremonies/sprint_01/sprint_planning.md) |
+| ✅ | Daily 1 | [`docs/scrum/ceremonies/sprint_01/daily_001.md`](docs/scrum/ceremonies/sprint_01/daily_001.md) |
+| 🟡 | Review / Retro 1 (agenda) | [`docs/scrum/ceremonies/sprint_01/`](docs/scrum/ceremonies/README.md) |
+| 🟡 | Incremento Sprint 1 | [`docs/scrum/increments/sprint_01/incremento_sprint_01.md`](docs/scrum/increments/sprint_01/incremento_sprint_01.md) |
 
-### Design e arquitetura
+### PO e time (entregas técnicas)
 
-| Status | Recurso | Caminho |
-|--------|---------|---------|
-| 📋 | Mockups de telas | `docs/design/mockups/` |
-| 📋 | Arquitetura (camadas) | `docs/architecture/arquitetura_ze_mercearia.md` |
-| 📋 | Integração Estoque ↔ WhatsApp | `docs/architecture/integracao_estoque_chatbot.md` |
-
-### Pseudocódigo, testes e CI
-
-| Status | Recurso | Caminho |
-|--------|---------|---------|
-| 📋 | Pseudocódigo (domínio, API, chatbot) | `src/` |
-| 📋 | Testes unitários (TDD) | `tests/` |
-| 📋 | Pipeline CI | `.github/workflows/ci.yml` |
+| Status | Artefato | Caminho |
+|--------|----------|---------|
+| 🟡 | Product Goal (PO validar) | [`docs/scrum/vision/product_goal_pendente_po.md`](docs/scrum/vision/product_goal_pendente_po.md) |
+| 📋 | Mockups | `docs/design/mockups/` |
+| 📋 | Arquitetura | `docs/architecture/` |
+| 📋 | Pseudocódigo · Testes · CI | `src/` · `tests/` · `.github/workflows/` |
 
 ---
 
@@ -98,6 +91,14 @@ Detalhamento completo: [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.m
 ---
 
 ## Equipe e repositório
+
+| Papel | Membro | GitHub |
+|-------|--------|--------|
+| PO | Arthur | [@ArtFacchinetti](https://github.com/ArtFacchinetti) |
+| SM | João Victor | [@JV-L0pes](https://github.com/JV-L0pes) |
+| Dev | Carlos, Caio, Felipe, Leo | [@Carlos-Santo](https://github.com/Carlos-Santo) · [@Caiuuutecnologico](https://github.com/Caiuuutecnologico) · [@FelipePacheco30](https://github.com/FelipePacheco30) · [@Leo-Slv](https://github.com/Leo-Slv) |
+
+Detalhes: [`docs/scrum/sm/equipe.md`](docs/scrum/sm/equipe.md)
 
 - **Organização:** [ErrorSquad-ABP](https://github.com/ErrorSquad-ABP)
 - **Repositório:** [FATEC-JCR-3DSM-GAP-2026-1](https://github.com/ErrorSquad-ABP/FATEC-JCR-3DSM-GAP-2026-1)
