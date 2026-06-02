@@ -49,7 +49,7 @@ T-S1-INF-01 (Felipe) → INF-02/04 (Carlos/Felipe) → INF-05 (Carlos) → auth 
 T-S1-INF-03 (Caio) em paralelo após INF-02
 ```
 
-**Bloqueio:** T-S1-E2-01 depende da lista de 5 lojas do PO ([IMP-002](../sm/registro_impedimentos.md)).
+Seed de lojas: **Loja 1–5** (LOJA-01–05) — genérico para testes, definido no [Product Goal](../../vision/product_goal.md).
 
 ---
 
@@ -60,7 +60,6 @@ T-S1-INF-03 (Caio) em paralelo após INF-02
 | CI atrasar TDD | Felipe prioriza #4 antes de E4-03 |
 | Mockups atrasarem | Caio usa wireframe MD; não bloqueia Carlos |
 | 33 SP altos | Arthur aceita edição de produto com escopo mínimo |
-| Lista de lojas | Arthur envia 5 nomes em 48h ou Carlos usa placeholders documentados |
 
 ---
 
@@ -69,8 +68,8 @@ T-S1-INF-03 (Caio) em paralelo após INF-02
 - [x] Arthur confirmou Sprint 1 antes do chatbot.
 - [x] Devs confirmaram ownership.
 - [x] SM populou [Projects #2](https://github.com/orgs/ErrorSquad-ABP/projects/2) — **42 issues** (S1: #1–14 · S2: #15–26 · S3: #27–42).
-- [ ] Arthur validar Product Goal (IMP-001).
+- [x] Product Goal definido → [product_goal.md](../../vision/product_goal.md).
 
 ---
 
-Ver [Daily 1](daily_001.md) · [Incremento Sprint 1](../../increments/sprint_01/incremento_sprint_01.md)
+Ver [Incremento Sprint 1](../../increments/sprint_01/incremento_sprint_01.md)

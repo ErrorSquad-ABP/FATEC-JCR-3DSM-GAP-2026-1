@@ -1,6 +1,6 @@
 # Cerimônias — Zé da Mercearia
 
-Atas **preenchidas** por sprint (não templates vazios). O SM facilita; o time fornece conteúdo nas Dailies e Reviews.
+Documentação das cerimônias **com ata** (Planning, Review, Retro). A **Daily Scrum** é facilitada pelo SM, mas **não exige registro em arquivo** — o acompanhamento fica no [GitHub Projects](https://github.com/orgs/ErrorSquad-ABP/projects/2) e no [registro de impedimentos](../sm/registro_impedimentos.md).
 
 ---
 
@@ -9,17 +9,15 @@ Atas **preenchidas** por sprint (não templates vazios). O SM facilita; o time f
 | Cerimônia | Documento | Status |
 |-----------|-----------|--------|
 | Sprint Planning | [sprint_01/sprint_planning.md](sprint_01/sprint_planning.md) | ✅ Concluída |
-| Daily Scrum (dia 1) | [sprint_01/daily_001.md](sprint_01/daily_001.md) | ✅ Registrada |
-| Sprint Review | `sprint_01/sprint_review.md` | ⏳ Após fim Sprint 1 |
-| Sprint Retrospective | `sprint_01/sprint_retrospective.md` | ⏳ Após Review |
-
-**Como registrar próxima Daily:** copiar estrutura de `daily_001.md` → `daily_002.md` com data e updates reais.
+| Daily Scrum | — | Facilitada pelo SM (sem ata) |
+| Sprint Review | [sprint_01/sprint_review.md](sprint_01/sprint_review.md) | ⏳ Após fim Sprint 1 |
+| Sprint Retrospective | [sprint_01/sprint_retrospective.md](sprint_01/sprint_retrospective.md) | ⏳ Após Review |
 
 ---
 
 ## Sprint 2 e 3 (futuro)
 
-Criar pasta `sprint_02/` e `sprint_03/` com os mesmos quatro arquivos quando cada sprint iniciar.
+Criar pasta `sprint_02/` e `sprint_03/` com **Planning**, **Review** e **Retro** quando cada sprint iniciar.
 
 ---
 
@@ -27,7 +25,7 @@ Criar pasta `sprint_02/` e `sprint_03/` com os mesmos quatro arquivos quando cad
 
 Critérios e demo script estão nos incrementos — usar na cerimônia:
 
-- [Incremento Sprint 1](../increments/sprint_01/incremento_sprint_01.md#demo-script-roteiro-para-sprint-review)
+- [Incremento Sprint 1](../increments/sprint_01/incremento_sprint_01.md#demo-script-review)
 - [Incremento Sprint 2](../increments/sprint_02/incremento_sprint_02.md#demo-script-review-sprint-2)
 - [Incremento Sprint 3](../increments/sprint_03/incremento_sprint_03.md#fluxo-ponta-a-ponta-roteiro-final-do-projeto)
 

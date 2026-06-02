@@ -9,13 +9,13 @@
 
 | # | Story | Cenário de demo | Status |
 |---|-------|-----------------|--------|
-| 1 | Chat E1-US01 | Cliente: “tem arroz?” → bot: nome, R$ 28,90, 15 un Loja Centro | ⚪ |
+| 1 | Chat E1-US01 | Cliente: “tem produto teste?” → bot: Produto Teste A, R$ 10,00, 15 un Loja 1 | ⚪ |
 | 2 | Chat E1-US02 | Cliente: “bebidas” → lista até 5 itens da categoria | ⚪ |
-| 3 | Chat E2-US01–03 | Monta 2× Arroz → resumo → “confirmar” → pedido #001 | ⚪ |
+| 3 | Chat E2-US01–03 | Monta 2× Produto Teste A → resumo → “confirmar” → pedido #001 | ⚪ |
 | 4 | Chat E3-US01 | Pedir 100 un com saldo 15 → bot recusa antes de confirmar | ⚪ |
-| 5 | Chat E3-US02 | Após confirmar, saldo Loja Centro 15→13; movimentação saída registrada | ⚪ |
+| 5 | Chat E3-US02 | Após confirmar, saldo Loja 1 15→13; movimentação saída registrada | ⚪ |
 | 6 | Chat E3-US03 | Produto zerado → “indisponível” + sugere similar se existir | ⚪ |
-| 7 | Chat E4-US01–02 | Gerente recebe WhatsApp: pedido #001, cliente João (11) 99999-0000 | ⚪ |
+| 7 | Chat E4-US01–02 | Gerente recebe WhatsApp: pedido #001, cliente Cliente Teste (11) 99999-0000 | ⚪ |
 | 8 | E2E | Teste pseudocódigo `tests/integration/pedido_whatsapp_test.txt` no CI | ⚪ |
 
 ---

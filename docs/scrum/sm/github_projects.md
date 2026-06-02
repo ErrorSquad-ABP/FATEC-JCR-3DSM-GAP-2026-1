@@ -80,7 +80,7 @@ SM alerta na Daily se WIP estourar.
 
 ## Ritual de atualização
 
-1. **Daily:** mover cards; registrar impedimentos.
+1. **Daily:** mover cards no Projects; registrar impedimentos se houver (sem ata em arquivo).
 2. **Planning:** puxar itens de *Backlog* → *Ready* para a sprint.
 3. **Review:** validar *Done*; demo do incremento.
 4. **Retro:** ajustar acordos ou colunas se necessário.

@@ -24,6 +24,7 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 | Status | Recurso | Caminho |
 |--------|---------|---------|
 | ✅ | Product Backlog | [`docs/scrum/product_backlog/product_backlog_ze_mercearia.md`](docs/scrum/product_backlog/product_backlog_ze_mercearia.md) |
+| ✅ | Product Goal | [`docs/scrum/vision/product_goal.md`](docs/scrum/vision/product_goal.md) |
 | ✅ | Sprint Backlog (3 sprints) | [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md`](docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md) |
 | ✅ | Kanban (Scrumban) | [GitHub Projects #2](https://github.com/orgs/ErrorSquad-ABP/projects/2) |
 
@@ -35,7 +36,6 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 | ✅ | RACI · Acordos · Impedimentos | [`docs/scrum/sm/`](docs/scrum/sm/README.md) |
 | ✅ | Definition of Done v1.0 | [`docs/scrum/definition_of_done.md`](docs/scrum/definition_of_done.md) |
 | ✅ | Sprint Planning 1 | [`docs/scrum/ceremonies/sprint_01/sprint_planning.md`](docs/scrum/ceremonies/sprint_01/sprint_planning.md) |
-| ✅ | Daily 1 | [`docs/scrum/ceremonies/sprint_01/daily_001.md`](docs/scrum/ceremonies/sprint_01/daily_001.md) |
 | 🟡 | Review / Retro 1 (agenda) | [`docs/scrum/ceremonies/sprint_01/`](docs/scrum/ceremonies/README.md) |
 | 🟡 | Incremento Sprint 1 | [`docs/scrum/increments/sprint_01/incremento_sprint_01.md`](docs/scrum/increments/sprint_01/incremento_sprint_01.md) |
 
@@ -43,7 +43,6 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 
 | Status | Artefato | Caminho |
 |--------|----------|---------|
-| 🟡 | Product Goal (PO validar) | [`docs/scrum/vision/product_goal_pendente_po.md`](docs/scrum/vision/product_goal_pendente_po.md) |
 | 📋 | Mockups | `docs/design/mockups/` |
 | 📋 | Arquitetura | `docs/architecture/` |
 | 📋 | Pseudocódigo · Testes · CI | `src/` · `tests/` · `.github/workflows/` |

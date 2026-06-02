@@ -24,25 +24,27 @@
 ## Demo script (Review)
 
 1. **Arthur** + **Caio** — mockup login e fluxo.
-2. **Carlos** — pseudocódigo: gerente → login → produto “Arroz 5kg” → qty Loja Centro.
+2. **Carlos** — pseudocódigo: gerente → login → produto “Produto Teste A” → qty Loja 1.
 3. **Felipe** — CI verde no Actions.
 4. **Leo** — teste auth credencial inválida (red/green).
-5. **Carlos** — estoque mesmo produto em 2 lojas, saldos diferentes.
+5. **Carlos** — estoque mesmo produto em Loja 1 e Loja 2, saldos diferentes.
 6. **Arthur** — aceite ou gaps → Sprint 2.
 
 ---
 
-## Seed demo
+## Seed demo (genérico)
 
 | Loja | ID |
 |------|-----|
-| Mercearia Centro | LOJA-01 |
-| Mercearia Norte | LOJA-02 |
-| Mercearia Sul | LOJA-03 |
-| Mercearia Leste | LOJA-04 |
-| Mercearia Oeste | LOJA-05 |
+| Loja 1 | LOJA-01 |
+| Loja 2 | LOJA-02 |
+| Loja 3 | LOJA-03 |
+| Loja 4 | LOJA-04 |
+| Loja 5 | LOJA-05 |
 
-Produto: **Arroz Tio João 5kg** — R$ 28,90 — Mercearia seca.
+Produto: **Produto Teste A** — R$ 10,00 — categoria **Teste**.
+
+Ver também [Product Goal](../../vision/product_goal.md).
 
 ---
 

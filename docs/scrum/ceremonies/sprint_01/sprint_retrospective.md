@@ -7,7 +7,6 @@
 ## Start
 
 - Pairing Carlos + Leo nos testes de auth se TDD atrasou.
-- Arthur enviar lista de lojas **antes** de tasks E2.
 
 ## Stop
 
@@ -18,7 +17,7 @@
 
 - Mockups MD low-fi (Caio).
 - Revisão cruzada Leo antes de Done.
-- Board Projects atualizado na Daily.
+- Board Projects atualizado na Daily (sem ata em arquivo).
 
 ---
 

@@ -13,8 +13,8 @@
 | DoD | ✅ v1.0 → [definition_of_done.md](../definition_of_done.md) |
 | Acordos | ✅ [acordos_do_time.md](acordos_do_time.md) |
 | GitHub Projects | ✅ [Projeto #2](https://github.com/orgs/ErrorSquad-ABP/projects/2) — 42 cards (S1×14, S2×12, S3×16) |
-| Impedimentos abertos | 4 → [registro](registro_impedimentos.md) |
-| Product Goal | ⏳ Arthur validar → [product_goal_pendente_po.md](../vision/product_goal_pendente_po.md) |
+| Impedimentos | [registro](registro_impedimentos.md) — preencher quando surgir |
+| Product Goal | ✅ [product_goal.md](../vision/product_goal.md) |
 | Incremento S1 | 🟡 [incremento](../increments/sprint_01/incremento_sprint_01.md) |
 
 ---
@@ -33,7 +33,7 @@ Detalhes: [equipe.md](equipe.md) · [RACI](raci_equipe.md)
 
 ## Rotina do SM
 
-- **Daily:** facilitar 15 min; atualizar impedimentos; checar WIP.
+- **Daily:** facilitar 15 min; atualizar board e impedimentos (sem ata em arquivo).
 - **Contínuo:** board Projects; pairing se card parado > 2 dias.
 - **Fim de sprint:** Review + Retro; [checklist](checklist_artefatos_por_sprint.md); refinamento S2 com Arthur.
 
@@ -56,5 +56,4 @@ Arquitetura, mockups, pseudocódigo, testes, CI — time dev. Priorização — 
 ## Próximas ações SM
 
 1. Atribuir issues no Projects (@Carlos, @Caio, @Felipe, @Leo).
-2. Cobrar Arthur: Product Goal + lista das 5 lojas (IMP-001, IMP-002).
-3. Registrar Dailies seguintes como `daily_002.md`, etc.
+2. Registrar impedimentos reais no [registro](registro_impedimentos.md) quando aparecerem.

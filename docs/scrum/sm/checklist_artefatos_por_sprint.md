@@ -11,11 +11,10 @@ SM valida no **fim de cada sprint**. Itens **(time)** = dev/PO produzem; SM conf
 | Item | Evidência | OK? |
 |------|-----------|-----|
 | Planning 1 documentada | [sprint_01/sprint_planning.md](../ceremonies/sprint_01/sprint_planning.md) | ✅ |
-| Daily registrada | [sprint_01/daily_001.md](../ceremonies/sprint_01/daily_001.md) | ✅ |
 | Review agendada / roteiro | [sprint_01/sprint_review.md](../ceremonies/sprint_01/sprint_review.md) | 🟡 agenda pronta |
 | Retro guia | [sprint_01/sprint_retrospective.md](../ceremonies/sprint_01/sprint_retrospective.md) | 🟡 guia pronta |
 | Projects atualizado | [Projects #2](https://github.com/orgs/ErrorSquad-ABP/projects/2) | ✅ 42 issues (#1–42) |
-| Impedimentos | [registro_impedimentos.md](registro_impedimentos.md) | ✅ 4 abertos |
+| Impedimentos | [registro_impedimentos.md](registro_impedimentos.md) | ✅ template pronto |
 
 ### Entregas (time) — conferir na Review
 
@@ -29,7 +28,7 @@ SM valida no **fim de cada sprint**. Itens **(time)** = dev/PO produzem; SM conf
 | Produtos E1 | `src/produtos/` + `tests/produtos/` | 🔲 |
 | Lojas E2 | `src/lojas/` + `tests/estoque/` | 🔲 |
 | Incremento | [incremento_sprint_01.md](../increments/sprint_01/incremento_sprint_01.md) aceite PO | 🔲 |
-| Product Goal | `docs/scrum/vision/product_goal.md` (PO) | 🔲 IMP-001 |
+| Product Goal | [product_goal.md](../vision/product_goal.md) | ✅ |
 
 ---
 

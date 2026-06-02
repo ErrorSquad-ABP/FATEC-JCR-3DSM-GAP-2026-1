@@ -13,7 +13,7 @@
 | 2 | E2-US04 | Registrar saída; saldo não fica negativo; erro se qty > saldo | ⚪ |
 | 3 | E2-US05 | Configurar mínimo=5; saldo 6→5 dispara alerta; saldo 7→6 não dispara | ⚪ |
 | 4 | E1-US03 | Excluir produto; some da listagem; estoque zerado ou bloqueio documentado | ⚪ |
-| 5 | E4-US02 | User `gerente_norte` vê só LOJA-02; admin vê todas | ⚪ |
+| 5 | E4-US02 | User `gerente_loja_02` vê só LOJA-02; admin vê todas | ⚪ |
 | 6 | E3-US01 | Relatório: tabela produto × 5 lojas × qty + total geral | ⚪ |
 | 7 | E3-US02 | Export CSV com header `loja,produto,qty`; PDF opcional | ⚪ |
 
@@ -21,11 +21,11 @@
 
 ## Demo script (Review Sprint 2)
 
-1. Gerente Loja Norte registra entrada de Arroz (+20).
+1. Gerente Loja 2 registra entrada de Produto Teste A (+20).
 2. Registra saída de 3 unidades (venda manual).
 3. Ajusta mínimo para 10; baixa estoque até 9 → alerta na tela/log.
 4. Admin gera relatório consolidado e exporta CSV.
-5. Login gerente Sul — não vê estoque do Norte.
+5. Login gerente Loja 4 — não vê estoque da Loja 2.
 6. PO aceita incremento de “estoque completo”.
 
 ---
