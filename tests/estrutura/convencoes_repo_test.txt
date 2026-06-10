@@ -1,0 +1,28 @@
+# Teste pseudocodigo: estrutura e convencoes do repositorio
+
+Task: T-S1-INF-01
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: repositorio possui estrutura base da Sprint 1
+Dado que o time iniciou a Sprint 1
+Quando a estrutura do repositorio for verificada
+Entao devem existir as pastas rastreaveis:
+- src/
+- tests/
+- docs/
+- docs/scrum/
+
+Cenario: pseudocodigo possui convencao documentada
+Dado que novos modulos serao criados em pseudocodigo
+Quando um dev consultar a documentacao de src/
+Entao deve encontrar a convencao para:
+- arquivos .txt ou .md
+- nomes de pastas em minusculo
+- nomes de arquivos em snake_case
+- separacao por responsabilidade/modulo
+
+Cenario: testes acompanham os modulos de pseudocodigo
+Dado que uma funcionalidade for adicionada em src/<modulo>/
+Quando seus testes forem adicionados
+Entao eles devem ficar em tests/<modulo>/
+E devem descrever cenario, entrada, passos e resultado esperado
