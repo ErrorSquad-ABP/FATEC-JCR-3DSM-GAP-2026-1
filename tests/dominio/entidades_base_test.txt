@@ -1,0 +1,38 @@
+# Teste pseudocodigo: entidades base
+
+Task: T-S1-INF-05
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: entidade Usuario possui dados obrigatorios
+Dado que o sistema precisa controlar acesso
+Quando um Usuario for modelado
+Entao deve possuir id, nome, login, senha_hash, papel e status
+E login deve ser obrigatorio e unico
+E senha_hash nao deve ser vazia
+
+Cenario: entidade Loja representa as cinco unidades
+Dado que o estoque deve ser separado por unidade
+Quando uma Loja for modelada
+Entao deve possuir id, nome e status
+E os IDs de demo devem seguir LOJA-01 a LOJA-05
+E o nome deve ser obrigatorio
+
+Cenario: entidade Produto possui dados de catalogo
+Dado que o gerente precisa cadastrar produtos
+Quando um Produto for modelado
+Entao deve possuir id, nome, descricao, categoria, preco e status
+E nome, categoria e preco devem ser obrigatorios
+E preco nao pode ser negativo
+
+Cenario: entidade Estoque relaciona produto e loja
+Dado que o saldo muda conforme a unidade
+Quando um Estoque for modelado
+Entao deve possuir id, produto_id, loja_id, quantidade_atual e atualizado_em
+E quantidade_atual nao pode ser negativa
+E produto_id e loja_id devem ser obrigatorios
+
+Cenario: seed de demonstracao segue Product Goal
+Dado que a Review usa dados genericos
+Quando o seed de entidades base for consultado
+Entao deve conter Loja 1 a Loja 5 com IDs LOJA-01 a LOJA-05
+E deve conter Produto Teste A com preco 10,00 e categoria Teste
