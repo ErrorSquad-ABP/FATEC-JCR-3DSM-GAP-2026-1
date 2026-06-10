@@ -1,0 +1,44 @@
+# Teste pseudocodigo: login e sessao
+
+Task: T-S1-E4-02
+Historia: E4-US01
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: login com credenciais validas cria sessao
+Dado que existe usuario ATIVO com login "gerente_loja_01"
+E a senha informada corresponde ao senha_hash armazenado
+Quando o usuario solicitar login
+Entao o sistema deve autenticar o usuario
+E deve criar uma sessao ATIVA
+E deve gerar um token de sessao
+E deve retornar usuario, papel e token
+
+Cenario: rejeitar login inexistente
+Dado que nao existe usuario com login "nao_existe"
+Quando o usuario solicitar login
+Entao o sistema deve retornar erro "credenciais invalidas"
+E nenhuma sessao deve ser criada
+
+Cenario: rejeitar senha incorreta
+Dado que existe usuario ATIVO com login "gerente_loja_01"
+Quando a senha informada nao corresponder ao senha_hash armazenado
+Entao o sistema deve retornar erro "credenciais invalidas"
+E nenhuma sessao deve ser criada
+
+Cenario: rejeitar usuario inativo
+Dado que existe usuario INATIVO com login "gerente_inativo"
+Quando o usuario solicitar login com senha correta
+Entao o sistema deve retornar erro "usuario inativo"
+E nenhuma sessao deve ser criada
+
+Cenario: validar token ativo
+Dado que uma sessao ATIVA foi criada para "gerente_loja_01"
+Quando o sistema validar o token gerado
+Entao deve retornar sessao valida
+E deve identificar o usuario autenticado
+
+Cenario: encerrar sessao
+Dado que uma sessao ATIVA foi criada para "gerente_loja_01"
+Quando o usuario solicitar logout
+Entao a sessao deve mudar para ENCERRADA
+E o token nao deve mais ser considerado valido
