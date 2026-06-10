@@ -1,0 +1,225 @@
+# Pseudocodigo: login e controle de sessao
+
+Task: T-S1-E4-02
+Historia: E4-US01
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir que um usuario cadastrado acesse o sistema com login e senha,
+  recebendo um token de sessao valido para as operacoes da Sprint 1.
+
+Dependencias:
+  - src/dominio/entidades_base.txt -> Usuario
+  - src/auth/cadastro_usuario.txt -> repositorio_usuarios e servico_hash
+
+---
+
+Entrada do login:
+  login
+  senha
+
+Saida de sucesso:
+  usuario_id
+  nome
+  login
+  papel
+  token
+
+Saidas de erro:
+  "credenciais invalidas"
+  "usuario inativo"
+  "token invalido"
+
+---
+
+Camada: Apresentacao
+
+Fluxo tela_login:
+  1. Usuario informa login e senha.
+  2. Sistema chama caso de uso autenticar_usuario.
+  3. Se autenticar com sucesso:
+       Armazenar token na sessao da interface.
+       Redirecionar usuario para dashboard.
+  4. Se retornar erro:
+       Exibir mensagem retornada.
+
+Fluxo logout:
+  1. Usuario clica em sair.
+  2. Sistema chama caso de uso encerrar_sessao(token).
+  3. Sistema remove token da interface.
+  4. Sistema redireciona para tela de login.
+
+---
+
+Camada: Aplicacao
+
+Caso de uso autenticar_usuario(login, senha):
+  1. Se login estiver vazio:
+       Retornar erro "credenciais invalidas".
+
+  2. Se senha estiver vazia:
+       Retornar erro "credenciais invalidas".
+
+  3. Buscar usuario:
+       usuario = repositorio_usuarios.buscar_por_login(login)
+
+  4. Se usuario nao existir:
+       Retornar erro "credenciais invalidas".
+
+  5. Se usuario.status for diferente de "ATIVO":
+       Retornar erro "usuario inativo".
+
+  6. Validar senha:
+       senha_valida = servico_hash.comparar(senha, usuario.senha_hash)
+
+  7. Se senha_valida for falso:
+       Retornar erro "credenciais invalidas".
+
+  8. Criar sessao:
+       sessao = servico_sessao.criar_sessao(usuario)
+
+  9. Persistir sessao:
+       repositorio_sessoes.salvar(sessao)
+
+  10. Retornar sucesso:
+       usuario_id: usuario.id
+       nome: usuario.nome
+       login: usuario.login
+       papel: usuario.papel
+       token: sessao.token
+
+Caso de uso validar_token(token):
+  1. Buscar sessao por token:
+       sessao = repositorio_sessoes.buscar_por_token(token)
+
+  2. Se sessao nao existir:
+       Retornar erro "token invalido".
+
+  3. Se sessao.status nao for "ATIVA":
+       Retornar erro "token invalido".
+
+  4. Buscar usuario da sessao:
+       usuario = repositorio_usuarios.buscar_por_id(sessao.usuario_id)
+
+  5. Se usuario nao existir ou usuario.status nao for "ATIVO":
+       Retornar erro "token invalido".
+
+  6. Retornar sessao valida com usuario autenticado.
+
+Caso de uso encerrar_sessao(token):
+  1. Buscar sessao por token.
+  2. Se sessao nao existir:
+       Retornar erro "token invalido".
+  3. Atualizar sessao.status para "ENCERRADA".
+  4. Persistir sessao atualizada.
+  5. Retornar sucesso.
+
+---
+
+Camada: Dominio
+
+Entidade: Sessao
+
+Atributos:
+  id: texto obrigatorio
+  usuario_id: texto obrigatorio
+  token: texto obrigatorio e unico
+  status: texto obrigatorio
+  criada_em: data_hora obrigatoria
+  encerrada_em: data_hora opcional
+
+Status permitidos:
+  ATIVA
+  ENCERRADA
+
+Regras:
+  1. sessao sempre pertence a um usuario existente.
+  2. token deve ser unico.
+  3. nova sessao inicia com status ATIVA.
+  4. sessao encerrada nao deve autenticar novas operacoes.
+  5. usuario INATIVO nao pode criar sessao.
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_sessoes
+
+Dados em memoria:
+  sessoes = lista vazia
+
+Funcao salvar(sessao):
+  Se existir sessao com mesmo id:
+    Substituir registro antigo pelo novo
+  Senao:
+    Adicionar sessao em sessoes
+  Retornar sessao salva
+
+Funcao buscar_por_token(token):
+  Para cada sessao em sessoes:
+    Se sessao.token for igual a token:
+      Retornar sessao
+  Retornar vazio
+
+Funcao proximo_id():
+  numero = quantidade de sessoes + 1
+  Retornar "SES-" + numero formatado com 3 digitos
+
+Servico simulado: servico_hash
+
+Funcao comparar(senha, senha_hash):
+  hash_informado = "hash_" + senha
+  Se hash_informado for igual a senha_hash:
+    Retornar verdadeiro
+  Retornar falso
+
+Servico simulado: servico_sessao
+
+Funcao criar_sessao(usuario):
+  id = repositorio_sessoes.proximo_id()
+  token = "token_" + usuario.id + "_" + id
+
+  Retornar Sessao {
+    id: id,
+    usuario_id: usuario.id,
+    token: token,
+    status: "ATIVA",
+    criada_em: data_hora_atual(),
+    encerrada_em: vazio
+  }
+
+Funcao encerrar(sessao):
+  sessao.status = "ENCERRADA"
+  sessao.encerrada_em = data_hora_atual()
+  Retornar sessao
+
+---
+
+Exemplo de login valido:
+
+Dado:
+  Usuario {
+    id: "USU-001",
+    nome: "Gerente Loja 1",
+    login: "gerente_loja_01",
+    senha_hash: "hash_senha_demo",
+    papel: "GERENTE",
+    status: "ATIVO"
+  }
+
+Entrada:
+  login: "gerente_loja_01"
+  senha: "senha_demo"
+
+Resultado:
+  sucesso
+  usuario_id: "USU-001"
+  nome: "Gerente Loja 1"
+  papel: "GERENTE"
+  token: "token_USU-001_SES-001"
+
+---
+
+Rastreabilidade dos testes:
+  tests/auth/login_sessao_test.txt
