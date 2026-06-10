@@ -21,6 +21,16 @@ Referencia da Sprint 1: `T-S1-INF-01` no Sprint Backlog.
 | `src/lojas/` | `tests/lojas/` |
 | `src/estoque/` | `tests/estoque/` |
 
+## Runner CI
+
+O workflow `.github/workflows/ci.yml` executa:
+
+```text
+./scripts/run_pseudocode_tests.ps1
+```
+
+O runner valida se existem arquivos de teste em `tests/` e se cada arquivo possui ao menos um bloco `Cenario:`.
+
 ## Formato recomendado
 
 ```text

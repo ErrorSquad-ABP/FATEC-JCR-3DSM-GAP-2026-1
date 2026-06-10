@@ -1,0 +1,33 @@
+# Teste pseudocodigo: workflow CI para TDD
+
+Task: T-S1-INF-04
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: workflow de CI existe
+Dado que a Sprint 1 exige pipeline CI executando testes unitarios
+Quando o repositorio for revisado
+Entao deve existir o arquivo .github/workflows/ci.yml
+E ele deve executar em pull_request para main
+E ele deve executar em push para main
+
+Cenario: CI valida testes em pseudocodigo
+Dado que os testes do projeto sao arquivos .txt ou .md em tests/
+Quando o workflow executar
+Entao ele deve chamar um runner de testes em pseudocodigo
+E o runner deve procurar arquivos de teste em tests/
+E cada arquivo de teste deve conter pelo menos um "Cenario"
+
+Cenario: CI falha quando nao ha testes
+Dado que o projeto segue TDD
+Quando a pasta tests/ nao possuir arquivos de teste
+Entao o runner deve retornar falha
+
+Cenario: CI falha quando teste nao descreve comportamento
+Dado que um arquivo de teste foi criado sem cenario
+Quando o runner validar o arquivo
+Entao o runner deve retornar falha com mensagem indicando o arquivo invalido
+
+Cenario: CI aprova os testes atuais da Sprint 1
+Dado que existem specs para estrutura, arquitetura e mockups
+Quando o runner for executado no estado atual do repositorio
+Entao ele deve aprovar os arquivos de teste existentes
