@@ -1,0 +1,35 @@
+# Teste pseudocodigo: arquitetura em camadas
+
+Task: T-S1-INF-02
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: arquitetura define as quatro camadas obrigatorias
+Dado que o time precisa documentar a arquitetura por responsabilidades
+Quando o documento docs/architecture/arquitetura_ze_mercearia.md for revisado
+Entao ele deve descrever as camadas:
+- apresentacao
+- aplicacao
+- dominio
+- infraestrutura
+
+Cenario: responsabilidades de cada camada estao separadas
+Dado que os modulos auth, produtos, lojas e estoque serao implementados em pseudocodigo
+Quando uma regra ou fluxo for descrito
+Entao a camada de dominio deve concentrar regras de negocio
+E a camada de aplicacao deve orquestrar casos de uso
+E a camada de apresentacao deve representar entradas e respostas de interface
+E a camada de infraestrutura deve representar persistencia e integracoes simuladas
+
+Cenario: dependencias seguem direcao controlada
+Dado que o projeto deve evitar pseudocodigo acoplado
+Quando um fluxo atravessar varias camadas
+Entao a apresentacao deve chamar a aplicacao
+E a aplicacao deve usar dominio
+E dominio nao deve depender de apresentacao ou infraestrutura
+E infraestrutura deve ser acessada por portas/repositorios descritos pela aplicacao ou dominio
+
+Cenario: arquitetura cobre o escopo da Sprint 1
+Dado que a Sprint 1 inclui autenticacao, produtos, lojas e consulta de estoque
+Quando o documento de arquitetura for lido
+Entao ele deve mapear esses modulos para responsabilidades e pastas esperadas
+E deve citar que chatbot, relatorios, alertas e movimentacoes ficam fora desta sprint
