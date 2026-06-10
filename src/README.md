@@ -21,7 +21,7 @@ Referencia da Sprint 1: `T-S1-INF-01` no Sprint Backlog.
 | Modulo | Caminho esperado | Origem |
 |--------|------------------|--------|
 | Dominio compartilhado | `src/dominio/` | T-S1-INF-05 |
-| Autenticacao | `src/auth/` | E4-US01 |
+| Autenticacao | `src/auth/` | E4-US01, T-S1-E4-01, T-S1-E4-02 |
 | Produtos | `src/produtos/` | E1-US01, E1-US02, E1-US04 |
 | Lojas | `src/lojas/` | E2-US01 |
 | Estoque | `src/estoque/` | E2-US02 |

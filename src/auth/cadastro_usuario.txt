@@ -1,0 +1,165 @@
+# Pseudocodigo: cadastro e persistencia de usuario
+
+Task: T-S1-E4-01
+Historia: E4-US01
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir que um administrador cadastre usuarios com login e senha para
+  controlar o acesso ao sistema de estoque.
+
+Entidade base:
+  Ver src/dominio/entidades_base.txt -> Usuario
+
+---
+
+Entrada:
+  nome
+  login
+  senha
+  papel
+
+Saida de sucesso:
+  Usuario criado com id, nome, login, senha_hash, papel e status ATIVO.
+
+Saidas de erro:
+  "nome e obrigatorio"
+  "login e obrigatorio"
+  "senha e obrigatoria"
+  "papel invalido"
+  "login ja cadastrado"
+
+---
+
+Camada: Apresentacao
+
+Fluxo tela_cadastro_usuario:
+  1. Administrador informa nome, login, senha e papel.
+  2. Sistema envia os dados para o caso de uso cadastrar_usuario.
+  3. Se o retorno for sucesso:
+       Exibir "usuario cadastrado com sucesso".
+  4. Se o retorno for erro:
+       Exibir mensagem de erro retornada.
+
+---
+
+Camada: Aplicacao
+
+Caso de uso cadastrar_usuario(dados):
+  1. Validar nome obrigatorio.
+     Se nome estiver vazio:
+       Retornar erro "nome e obrigatorio".
+
+  2. Validar login obrigatorio.
+     Se login estiver vazio:
+       Retornar erro "login e obrigatorio".
+
+  3. Validar senha obrigatoria.
+     Se senha estiver vazia:
+       Retornar erro "senha e obrigatoria".
+
+  4. Validar papel.
+     Se papel nao for ADMIN nem GERENTE:
+       Retornar erro "papel invalido".
+
+  5. Consultar repositorio_usuarios.buscar_por_login(login).
+     Se encontrar usuario existente:
+       Retornar erro "login ja cadastrado".
+
+  6. Gerar id unico:
+       id = repositorio_usuarios.proximo_id()
+
+  7. Gerar senha_hash:
+       senha_hash = servico_hash.gerar_hash(senha)
+
+  8. Criar Usuario:
+       usuario = Usuario {
+         id: id,
+         nome: nome,
+         login: login,
+         senha_hash: senha_hash,
+         papel: papel,
+         status: "ATIVO"
+       }
+
+  9. Persistir usuario:
+       repositorio_usuarios.salvar(usuario)
+
+  10. Retornar sucesso com usuario sem expor senha_hash na tela.
+
+---
+
+Camada: Dominio
+
+Regras da entidade Usuario:
+  1. nome e obrigatorio para identificacao humana.
+  2. login e obrigatorio e unico.
+  3. senha_hash e obrigatoria.
+  4. papel deve ser ADMIN ou GERENTE.
+  5. status inicial deve ser ATIVO.
+
+Funcao validar_papel(papel):
+  Se papel for "ADMIN":
+    Retornar sucesso
+  Se papel for "GERENTE":
+    Retornar sucesso
+  Retornar erro "papel invalido"
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_usuarios
+
+Dados em memoria:
+  usuarios = lista vazia
+
+Funcao buscar_por_login(login):
+  Para cada usuario em usuarios:
+    Se usuario.login for igual a login:
+      Retornar usuario
+  Retornar vazio
+
+Funcao proximo_id():
+  numero = quantidade de usuarios + 1
+  Retornar "USU-" + numero formatado com 3 digitos
+
+Funcao salvar(usuario):
+  Adicionar usuario na lista usuarios
+  Retornar usuario salvo
+
+Servico simulado: servico_hash
+
+Funcao gerar_hash(senha):
+  Retornar "hash_" + senha
+
+Observacao:
+  O hash e apenas representativo para pseudocodigo. Nao deve ser usado como
+  implementacao real de seguranca.
+
+---
+
+Exemplo de cadastro valido:
+
+Entrada:
+  nome: "Gerente Loja 1"
+  login: "gerente_loja_01"
+  senha: "senha_demo"
+  papel: "GERENTE"
+
+Resultado:
+  sucesso
+  Usuario {
+    id: "USU-001",
+    nome: "Gerente Loja 1",
+    login: "gerente_loja_01",
+    senha_hash: "hash_senha_demo",
+    papel: "GERENTE",
+    status: "ATIVO"
+  }
+
+---
+
+Rastreabilidade dos testes:
+  tests/auth/cadastro_usuario_test.txt
