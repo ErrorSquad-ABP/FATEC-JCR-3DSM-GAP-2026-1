@@ -1,0 +1,37 @@
+# Teste pseudocodigo: cadastro de usuario
+
+Task: T-S1-E4-01
+Historia: E4-US01
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: cadastrar usuario gerente com dados validos
+Dado que nao existe usuario com login "gerente_loja_01"
+Quando o administrador informar nome, login, senha e papel GERENTE
+Entao o sistema deve criar um Usuario com status ATIVO
+E deve gerar um id unico
+E deve salvar senha como senha_hash
+E deve persistir o usuario no repositorio simulado
+
+Cenario: rejeitar cadastro sem login
+Dado que o administrador abriu o cadastro de usuario
+Quando o login estiver vazio
+Entao o sistema deve retornar erro "login e obrigatorio"
+E nenhum usuario deve ser persistido
+
+Cenario: rejeitar cadastro sem senha
+Dado que o administrador abriu o cadastro de usuario
+Quando a senha estiver vazia
+Entao o sistema deve retornar erro "senha e obrigatoria"
+E nenhum usuario deve ser persistido
+
+Cenario: rejeitar login duplicado
+Dado que ja existe usuario com login "gerente_loja_01"
+Quando o administrador tentar cadastrar outro usuario com o mesmo login
+Entao o sistema deve retornar erro "login ja cadastrado"
+E deve manter apenas o usuario original no repositorio
+
+Cenario: rejeitar papel invalido
+Dado que os papeis permitidos sao ADMIN e GERENTE
+Quando o administrador informar papel "CLIENTE"
+Entao o sistema deve retornar erro "papel invalido"
+E nenhum usuario deve ser persistido
