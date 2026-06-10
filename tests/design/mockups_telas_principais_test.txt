@@ -1,0 +1,46 @@
+# Teste pseudocodigo: mockups das telas principais
+
+Task: T-S1-INF-03
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: mockups obrigatorios da Sprint 1 existem
+Dado que a Sprint 1 precisa alinhar UX antes do pseudocodigo funcional
+Quando a pasta docs/design/mockups/ for revisada
+Entao devem existir os arquivos:
+- 01_login.md
+- 02_dashboard.md
+- 03_produtos_listagem.md
+- 04_produto_cadastro.md
+- 05_lojas.md
+
+Cenario: tela de login cobre autenticacao basica
+Dado que o gerente precisa acessar o sistema
+Quando o mockup de login for revisado
+Entao ele deve mostrar campos de usuario e senha
+E deve prever acao de entrar
+E deve prever mensagem de credenciais invalidas
+
+Cenario: dashboard cobre visao inicial do estoque
+Dado que o gerente autenticado precisa enxergar a situacao das lojas
+Quando o mockup de dashboard for revisado
+Entao ele deve mostrar resumo das cinco lojas
+E deve permitir acesso a produtos, lojas e estoque
+
+Cenario: listagem de produtos cobre filtros
+Dado que o gerente precisa encontrar produtos rapidamente
+Quando o mockup de produtos for revisado
+Entao ele deve mostrar filtro por nome
+E filtro por categoria
+E lista com nome, categoria, preco e quantidade total
+
+Cenario: cadastro de produto cobre campos obrigatorios
+Dado que o gerente precisa cadastrar Produto Teste A
+Quando o mockup de cadastro for revisado
+Entao ele deve conter nome, descricao, categoria, preco e quantidade inicial
+E deve prever salvar e cancelar
+
+Cenario: lojas cobre cinco unidades e consulta de estoque
+Dado que o sistema separa estoque por unidade
+Quando o mockup de lojas for revisado
+Entao ele deve listar Loja 1 a Loja 5 com IDs LOJA-01 a LOJA-05
+E deve permitir selecionar uma loja para consultar estoque
