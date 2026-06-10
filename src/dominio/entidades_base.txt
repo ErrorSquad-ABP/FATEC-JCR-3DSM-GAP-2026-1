@@ -1,0 +1,167 @@
+# Pseudocodigo: entidades base
+
+Task: T-S1-INF-05
+Camada: Dominio
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Definir as entidades base usadas pelos modulos de autenticacao, produtos,
+  lojas e estoque na Sprint 1.
+
+---
+
+Entidade: Usuario
+
+Atributos:
+  id: texto obrigatorio
+  nome: texto obrigatorio
+  login: texto obrigatorio e unico
+  senha_hash: texto obrigatorio
+  papel: texto obrigatorio
+  status: texto obrigatorio
+
+Papeis permitidos:
+  ADMIN
+  GERENTE
+
+Status permitidos:
+  ATIVO
+  INATIVO
+
+Regras:
+  1. login nao pode ser vazio.
+  2. login deve ser unico no repositorio de usuarios.
+  3. senha_hash nao pode ser vazia.
+  4. papel deve ser ADMIN ou GERENTE.
+  5. novo usuario inicia com status ATIVO.
+
+Exemplo:
+  Usuario {
+    id: "USU-001",
+    nome: "Gerente Loja 1",
+    login: "gerente_loja_01",
+    senha_hash: "hash_senha_demo",
+    papel: "GERENTE",
+    status: "ATIVO"
+  }
+
+---
+
+Entidade: Loja
+
+Atributos:
+  id: texto obrigatorio
+  nome: texto obrigatorio
+  status: texto obrigatorio
+
+Status permitidos:
+  ATIVA
+  INATIVA
+
+Regras:
+  1. id nao pode ser vazio.
+  2. id deve ser unico.
+  3. nome nao pode ser vazio.
+  4. nova loja inicia com status ATIVA.
+  5. para a demonstracao da Sprint 1, usar IDs LOJA-01 a LOJA-05.
+
+Seed demo:
+  Loja { id: "LOJA-01", nome: "Loja 1", status: "ATIVA" }
+  Loja { id: "LOJA-02", nome: "Loja 2", status: "ATIVA" }
+  Loja { id: "LOJA-03", nome: "Loja 3", status: "ATIVA" }
+  Loja { id: "LOJA-04", nome: "Loja 4", status: "ATIVA" }
+  Loja { id: "LOJA-05", nome: "Loja 5", status: "ATIVA" }
+
+---
+
+Entidade: Produto
+
+Atributos:
+  id: texto obrigatorio
+  nome: texto obrigatorio
+  descricao: texto opcional
+  categoria: texto obrigatorio
+  preco: decimal obrigatorio
+  status: texto obrigatorio
+
+Status permitidos:
+  ATIVO
+  INATIVO
+
+Regras:
+  1. id nao pode ser vazio.
+  2. nome nao pode ser vazio.
+  3. categoria nao pode ser vazia.
+  4. preco nao pode ser negativo.
+  5. novo produto inicia com status ATIVO.
+
+Seed demo:
+  Produto {
+    id: "PROD-001",
+    nome: "Produto Teste A",
+    descricao: "Produto usado para demonstracao da Sprint 1",
+    categoria: "Teste",
+    preco: 10.00,
+    status: "ATIVO"
+  }
+
+---
+
+Entidade: Estoque
+
+Atributos:
+  id: texto obrigatorio
+  produto_id: texto obrigatorio
+  loja_id: texto obrigatorio
+  quantidade_atual: inteiro obrigatorio
+  atualizado_em: data_hora obrigatoria
+
+Regras:
+  1. produto_id deve apontar para Produto existente.
+  2. loja_id deve apontar para Loja existente.
+  3. quantidade_atual nao pode ser negativa.
+  4. cada combinacao produto_id + loja_id deve ter apenas um registro de estoque.
+  5. atualizado_em deve mudar quando o saldo for alterado.
+
+Seed demo:
+  Estoque {
+    id: "EST-001",
+    produto_id: "PROD-001",
+    loja_id: "LOJA-01",
+    quantidade_atual: 15,
+    atualizado_em: "2026-06-10T00:00:00"
+  }
+
+  Estoque {
+    id: "EST-002",
+    produto_id: "PROD-001",
+    loja_id: "LOJA-02",
+    quantidade_atual: 8,
+    atualizado_em: "2026-06-10T00:00:00"
+  }
+
+---
+
+Validacao comum:
+
+Funcao validar_texto_obrigatorio(nome_campo, valor):
+  Se valor estiver vazio:
+    Retornar erro nome_campo + " e obrigatorio"
+  Retornar sucesso
+
+Funcao validar_decimal_nao_negativo(nome_campo, valor):
+  Se valor < 0:
+    Retornar erro nome_campo + " nao pode ser negativo"
+  Retornar sucesso
+
+Funcao validar_inteiro_nao_negativo(nome_campo, valor):
+  Se valor < 0:
+    Retornar erro nome_campo + " nao pode ser negativo"
+  Retornar sucesso
+
+---
+
+Observacoes:
+  - Esta modelagem pertence a camada de Dominio.
+  - Persistencia simulada sera descrita nos pseudocodigos de cada modulo.
+  - Movimentacoes, alertas, relatorios e chatbot ficam fora da Sprint 1.
