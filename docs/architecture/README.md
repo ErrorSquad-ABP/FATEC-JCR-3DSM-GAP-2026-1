@@ -2,8 +2,6 @@
 
 Documentos de arquitetura do projeto.
 
-A entrega detalhada da arquitetura em camadas sera feita na task `T-S1-INF-02`.
+Entrega da Sprint 1:
 
-Arquivo esperado:
-
-- `arquitetura_ze_mercearia.md`
+- [Arquitetura em camadas — Ze da Mercearia](arquitetura_ze_mercearia.md)
