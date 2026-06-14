@@ -1,0 +1,127 @@
+# Pseudocodigo: registro de entrada com log
+
+Task: T-S2-E2-01
+Historia: E2-US03
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir o reabastecimento de produtos em lojas especificas, garantindo
+  a integridade do saldo e o rastreio via log de movimentacao.
+
+---
+
+Entrada:
+  produto_id
+  loja_id
+  quantidade
+
+Saida de sucesso:
+  Estoque atualizado e log de movimentacao criado.
+
+Saidas de erro:
+  "quantidade deve ser maior que zero"
+  "loja nao encontrada"
+  "produto nao encontrado"
+
+---
+
+Camada: Apresentacao
+
+Fluxo tela_registro_entrada:
+  1. Gerente seleciona produto, loja e informa quantidade.
+  2. Sistema envia os dados para o caso de uso registrar_entrada.
+  3. Se o retorno for sucesso:
+       Exibir "entrada registrada com sucesso".
+  4. Se o retorno for erro:
+       Exibir mensagem de erro retornada.
+
+---
+
+Camada: Aplicacao
+
+Caso de uso registrar_entrada(produto_id, loja_id, quantidade):
+  1. Validar quantidade:
+     Se quantidade <= 0:
+       Retornar erro "quantidade deve ser maior que zero".
+
+  2. Verificar existencia da loja:
+     loja = repositorio_lojas.buscar_por_id(loja_id)
+     Se loja nao existir:
+       Retornar erro "loja nao encontrada".
+
+  3. Verificar existencia do produto:
+     produto = repositorio_produtos.buscar_por_id(produto_id)
+     Se produto nao existir:
+       Retornar erro "produto nao encontrado".
+
+  4. Buscar ou criar registro de estoque:
+     estoque = repositorio_estoque.buscar_por_produto_e_loja(produto_id, loja_id)
+     Se nao encontrar:
+       id_novo = repositorio_estoque.proximo_id()
+       estoque = Estoque {
+         id: id_novo,
+         produto_id: produto_id,
+         loja_id: loja_id,
+         quantidade_atual: 0,
+         atualizado_em: data_hora_atual()
+       }
+
+  5. Atualizar saldo:
+     estoque.quantidade_atual = estoque.quantidade_atual + quantidade
+     estoque.atualizado_em = data_hora_atual()
+
+  6. Gerar log de movimentacao:
+     log = Movimentacao {
+       id: repositorio_movimentacoes.proximo_id(),
+       tipo: "ENTRADA",
+       produto_id: produto_id,
+       loja_id: loja_id,
+       quantidade: quantidade,
+       data_hora: data_hora_atual()
+     }
+
+  7. Salvar alteracoes:
+     repositorio_estoque.salvar(estoque)
+     repositorio_movimentacoes.salvar(log)
+
+  8. Retornar sucesso.
+
+---
+
+Camada: Dominio
+
+Entidade: Movimentacao (Nova)
+  Atributos:
+    id: texto
+    tipo: texto (ENTRADA ou SAIDA)
+    produto_id: texto
+    loja_id: texto
+    quantidade: inteiro
+    data_hora: data_hora
+
+Regras:
+  1. Toda alteracao de saldo (entrada ou saida) deve gerar um registro de Movimentacao.
+  2. A quantidade em uma entrada deve ser sempre positiva.
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_movimentacoes
+
+Dados em memoria:
+  movimentacoes = lista vazia
+
+Funcao salvar(log):
+  Adicionar log na lista movimentacoes
+  Retornar sucesso
+
+Funcao proximo_id():
+  numero = quantidade de movimentacoes + 1
+  Retornar "MOV-" + numero formatado com 4 digitos
+
+---
+
+Rastreabilidade dos testes:
+  tests/estoque/registro_entrada_test.txt

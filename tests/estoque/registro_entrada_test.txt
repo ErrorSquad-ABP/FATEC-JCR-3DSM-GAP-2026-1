@@ -1,0 +1,28 @@
+# Teste pseudocodigo: registro de entrada de estoque
+
+Task: T-S2-E2-01
+Historia: E2-US03
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: registrar entrada de produto com sucesso
+  Dado que o produto "PROD-001" tem saldo 10 na "LOJA-01"
+  Quando o gerente registrar entrada de 5 unidades
+  Entao o saldo do produto na "LOJA-01" deve passar para 15
+  E deve ser criado um log de movimentacao do tipo "ENTRADA"
+  E o log deve conter a data, quantidade, produto e loja
+
+Cenario: rejeitar entrada com quantidade zero ou negativa
+  Dado que o gerente abriu a tela de entrada de estoque
+  Quando informar a quantidade 0
+  Entao o sistema deve retornar erro "quantidade deve ser maior que zero"
+  E o saldo nao deve ser alterado
+
+Cenario: rejeitar entrada para loja inexistente
+  Dado que o produto "PROD-001" existe
+  Quando o gerente tentar registrar entrada para a loja "LOJA-99" (inexistente)
+  Entao o sistema deve retornar erro "loja nao encontrada"
+
+Cenario: rejeitar entrada para produto inexistente
+  Dado que a loja "LOJA-01" existe
+  Quando o gerente tentar registrar entrada para o produto "PROD-999" (inexistente)
+  Entao o sistema deve retornar erro "produto nao encontrado"
