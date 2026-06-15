@@ -1,0 +1,22 @@
+# Teste pseudocodigo: exclusao logica de produto
+
+Task: T-S2-E1-01
+Historia: E1-US03
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: excluir um produto com sucesso (exclusao logica)
+  Dado que o produto "PROD-001" existe com status "ATIVO"
+  Quando o gerente solicitar a exclusao do produto "PROD-001"
+  Entao o sistema deve alterar o status do produto para "INATIVO"
+  E o sistema deve confirmar "produto excluido com sucesso"
+
+Cenario: tentar excluir um produto inexistente
+  Dado que o produto "PROD-999" nao existe no sistema
+  Quando o gerente solicitar a exclusao do produto "PROD-999"
+  Entao o sistema deve retornar erro "produto nao encontrado"
+
+Cenario: garantir que produto inativo permanece no repositorio
+  Dado que o produto "PROD-001" foi excluido logicamente
+  Quando o administrador buscar todos os produtos
+  Entao o produto "PROD-001" ainda deve constar na lista
+  Mas seu status deve ser "INATIVO"
