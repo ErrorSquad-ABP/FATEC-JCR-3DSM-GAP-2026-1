@@ -1,0 +1,87 @@
+# Pseudocodigo: configuracao de estoque minimo por produto/loja
+
+Task: T-S2-E2-04
+Historia: E2-US05
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir que o gerente defina um limite de seguranca para cada produto em
+  cada unidade, que servira de base para o disparo de alertas.
+
+---
+
+Entrada:
+  produto_id
+  loja_id
+  quantidade_minima
+
+Saida de sucesso:
+  Estoque atualizado com o novo limite minimo.
+
+Saidas de erro:
+  "estoque minimo nao pode ser negativo"
+  "registro de estoque nao encontrado"
+
+---
+
+Camada: Apresentacao
+
+Fluxo tela_configurar_estoque_minimo:
+  1. Gerente visualiza a lista de produtos por loja.
+  2. Seleciona um item e informa a nova quantidade minima.
+  3. Sistema envia os dados para o caso de uso configurar_estoque_minimo.
+  4. Se sucesso, exibe confirmacao.
+  5. Se erro, exibe mensagem de validacao.
+
+---
+
+Camada: Aplicacao
+
+Caso de uso configurar_estoque_minimo(produto_id, loja_id, quantidade_minima):
+  1. Validar entrada:
+     Se quantidade_minima < 0:
+       Retornar erro "estoque minimo nao pode ser negativo".
+
+  2. Buscar registro:
+     estoque = repositorio_estoque.buscar_por_produto_e_loja(produto_id, loja_id)
+     Se nao encontrar:
+       Retornar erro "registro de estoque nao encontrado".
+
+  3. Atualizar limite:
+     estoque.estoque_minimo = quantidade_minima
+     estoque.atualizado_em = data_hora_atual()
+
+  4. Salvar:
+     repositorio_estoque.salvar(estoque)
+
+  5. Retornar sucesso.
+
+---
+
+Camada: Dominio
+
+Entidade: Estoque (Atualizada)
+  Atributos:
+    id: texto
+    produto_id: texto
+    loja_id: texto
+    quantidade_atual: inteiro
+    estoque_minimo: inteiro (NOVO)
+    atualizado_em: data_hora
+
+Regras:
+  1. estoque_minimo deve ser sempre >= 0.
+  2. Valor padrao ao criar novo registro e 0.
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_estoque (Atualizado)
+  As funcoes de busca e salvamento agora consideram o novo campo estoque_minimo.
+
+---
+
+Rastreabilidade dos testes:
+  tests/estoque/config_alerta_test.txt
