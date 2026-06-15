@@ -1,0 +1,24 @@
+# Teste pseudocodigo: disparo de alertas de estoque
+
+Task: T-S2-E2-05
+Historia: E2-US05
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: disparar alerta quando saldo atinge o minimo
+  Dado que o produto "PROD-001" na "LOJA-01" tem estoque_minimo = 10
+  E o saldo atual e 11
+  Quando ocorrer uma saida de 2 unidades (novo saldo = 9)
+  Entao o sistema deve gerar um alerta de "ESTOQUE_BAIXO"
+  E o alerta deve conter a mensagem "Produto com saldo abaixo do minimo"
+
+Cenario: disparar alerta quando saldo e exatamente igual ao minimo
+  Dado que o estoque_minimo e 5
+  E o saldo atual e 6
+  Quando ocorrer uma saida de 1 unidade (novo saldo = 5)
+  Entao o sistema deve gerar um alerta de "ESTOQUE_LIMITE"
+
+Cenario: nao disparar alerta quando saldo permanece acima do minimo
+  Dado que o estoque_minimo e 10
+  E o saldo atual e 20
+  Quando ocorrer uma saida de 5 unidades (novo saldo = 15)
+  Entao o sistema nao deve gerar nenhum alerta

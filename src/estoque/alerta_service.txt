@@ -1,0 +1,84 @@
+# Pseudocodigo: servico de disparo de alertas
+
+Task: T-S2-E2-05
+Historia: E2-US05
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Monitorar as alteracoes de saldo e notificar o sistema/gerente quando o
+  estoque atingir niveis de seguranca (estoque minimo).
+
+---
+
+Camada: Aplicacao
+
+Servico: ServicoAlerta
+
+Funcao verificar_limites_estoque(estoque):
+  1. Obter quantidade_atual e estoque_minimo.
+  
+  2. Se quantidade_atual < estoque_minimo:
+       mensagem = "ALERTA: Produto " + estoque.produto_id + " em estado CRITICO na " + estoque.loja_id
+       gerar_notificacao(estoque, "ESTOQUE_BAIXO", mensagem)
+       Retornar "ALERTA_DISPARADO"
+
+  3. Se quantidade_atual == estoque_minimo:
+       mensagem = "AVISO: Produto " + estoque.produto_id + " atingiu o limite minimo na " + estoque.loja_id
+       gerar_notificacao(estoque, "ESTOQUE_LIMITE", mensagem)
+       Retornar "AVISO_DISPARADO"
+
+  4. Caso contrario:
+       Retornar "SALDO_NORMAL"
+
+Funcao gerar_notificacao(estoque, tipo, mensagem):
+  1. Criar objeto Alerta:
+       alerta = Alerta {
+         id: repositorio_alertas.proximo_id(),
+         tipo: tipo,
+         mensagem: mensagem,
+         produto_id: estoque.produto_id,
+         loja_id: estoque.loja_id,
+         data_hora: data_hora_atual(),
+         lido: falso
+       }
+  2. Salvar alerta:
+       repositorio_alertas.salvar(alerta)
+
+---
+
+Camada: Dominio
+
+Entidade: Alerta
+  Atributos:
+    id: texto
+    tipo: texto (ESTOQUE_BAIXO, ESTOQUE_LIMITE)
+    mensagem: texto
+    produto_id: texto
+    loja_id: texto
+    data_hora: data_hora
+    lido: booleano
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_alertas
+
+Dados em memoria:
+  alertas = lista vazia
+
+Funcao salvar(alerta):
+  Adicionar alerta na lista alertas
+  Retornar sucesso
+
+---
+
+Integracao (Gatilho):
+  Esta funcao `verificar_limites_estoque` deve ser chamada pelos casos de uso
+  de 'registrar_entrada' e 'registrar_saida' logo apos a persistencia do novo saldo.
+
+---
+
+Rastreabilidade dos testes:
+  tests/estoque/disparo_alerta_test.txt
