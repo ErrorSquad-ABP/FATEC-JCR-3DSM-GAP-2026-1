@@ -1,0 +1,28 @@
+# Teste pseudocodigo: registro de saida manual de estoque
+
+Task: T-S2-E2-02
+Historia: E2-US04
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: registrar saida de produto com sucesso
+  Dado que o produto "PROD-001" tem saldo 10 na "LOJA-01"
+  Quando o gerente registrar saida manual de 4 unidades
+  Entao o saldo do produto na "LOJA-01" deve passar para 6
+  E deve ser criado um log de movimentacao do tipo "SAIDA"
+  E o log deve conter o motivo (venda/perda/vencimento)
+
+Cenario: rejeitar saida com saldo insuficiente
+  Dado que o produto "PROD-001" tem saldo 3 na "LOJA-01"
+  Quando o gerente tentar registrar saida de 5 unidades
+  Entao o sistema deve retornar erro "saldo insuficiente"
+  E o saldo deve permanecer 3
+
+Cenario: rejeitar saida com quantidade zero ou negativa
+  Dado que o gerente abriu a tela de saida de estoque
+  Quando informar a quantidade -1
+  Entao o sistema deve retornar erro "quantidade deve ser maior que zero"
+
+Cenario: rejeitar saida para produto ou loja inexistente
+  Dado que o sistema esta operacional
+  Quando o gerente informar dados de uma loja nao cadastrada
+  Entao o sistema deve retornar erro "loja nao encontrada"

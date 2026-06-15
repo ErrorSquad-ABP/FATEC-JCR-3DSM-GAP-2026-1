@@ -1,0 +1,104 @@
+# Pseudocodigo: registro de saida manual
+
+Task: T-S2-E2-02
+Historia: E2-US04
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir o registro manual de saidas de estoque (vendas, perdas, avarias) 
+  garantindo que o saldo nunca fique negativo e mantendo o historico.
+
+---
+
+Entrada:
+  produto_id
+  loja_id
+  quantidade
+  motivo (ex: "VENDA", "AVARIA", "VENCIMENTO")
+
+Saida de sucesso:
+  Estoque atualizado e log de movimentacao do tipo "SAIDA" criado.
+
+Saidas de erro:
+  "quantidade deve ser maior que zero"
+  "saldo insuficiente"
+  "loja nao encontrada"
+  "produto nao encontrado"
+
+---
+
+Camada: Apresentacao
+
+Fluxo tela_registro_saida:
+  1. Gerente informa produto, loja, quantidade e o motivo da saida.
+  2. Sistema envia os dados para o caso de uso registrar_saida_manual.
+  3. Se o retorno for sucesso:
+       Exibir "saida registrada com sucesso".
+  4. Se o retorno for erro:
+       Exibir mensagem de erro retornada.
+
+---
+
+Camada: Aplicacao
+
+Caso de uso registrar_saida_manual(produto_id, loja_id, quantidade, motivo):
+  1. Validar quantidade:
+     Se quantidade <= 0:
+       Retornar erro "quantidade deve ser maior que zero".
+
+  2. Verificar existencia da loja e produto (via repositorios).
+     Se nao existirem, retornar erros correspondentes.
+
+  3. Buscar registro de estoque:
+     estoque = repositorio_estoque.buscar_por_produto_e_loja(produto_id, loja_id)
+     Se nao encontrar:
+       Retornar erro "saldo insuficiente" (pois nao ha registro de entrada).
+
+  4. Validar saldo:
+     Se estoque.quantidade_atual < quantidade:
+       Retornar erro "saldo insuficiente".
+
+  5. Atualizar saldo:
+     estoque.quantidade_atual = estoque.quantidade_atual - quantidade
+     estoque.atualizado_em = data_hora_atual()
+
+  6. Gerar log de movimentacao:
+     log = Movimentacao {
+       id: repositorio_movimentacoes.proximo_id(),
+       tipo: "SAIDA",
+       motivo: motivo,
+       produto_id: produto_id,
+       loja_id: loja_id,
+       quantidade: quantidade,
+       data_hora: data_hora_atual()
+     }
+
+  7. Salvar alteracoes:
+     repositorio_estoque.salvar(estoque)
+     repositorio_movimentacoes.salvar(log)
+
+  8. Retornar sucesso.
+
+---
+
+Camada: Dominio
+
+Regras da entidade Movimentacao (atualizada):
+  1. tipo deve ser "ENTRADA" ou "SAIDA".
+  2. Para "SAIDA", o motivo e obrigatorio para fins de auditoria.
+
+Regras de Negocio:
+  1. O saldo de estoque nao pode ser decrementado abaixo de zero.
+  2. Saidas manuais exigem justificativa (motivo).
+
+---
+
+Camada: Infraestrutura
+
+Utiliza os mesmos repositorios definidos em T-S2-E2-01.
+
+---
+
+Rastreabilidade dos testes:
+  tests/estoque/registro_saida_test.txt
