@@ -4,6 +4,10 @@ Task: T-S2-E2-05
 Historia: E2-US05
 Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
 
+---
+
+Task: T-S2-E2-06 (Testes TDD)
+
 Cenario: disparar alerta quando saldo atinge o minimo
   Dado que o produto "PROD-001" na "LOJA-01" tem estoque_minimo = 10
   E o saldo atual e 11
@@ -22,3 +26,10 @@ Cenario: nao disparar alerta quando saldo permanece acima do minimo
   E o saldo atual e 20
   Quando ocorrer uma saida de 5 unidades (novo saldo = 15)
   Entao o sistema nao deve gerar nenhum alerta
+
+Cenario: independencia de alertas por loja (multi-loja)
+  Dado que o produto "PROD-001" na "LOJA-01" tem estoque_minimo = 10 e saldo = 9
+  E o mesmo produto "PROD-001" na "LOJA-02" tem estoque_minimo = 10 e saldo = 15
+  Quando o sistema verificar os limites
+  Entao deve existir um alerta para a "LOJA-01"
+  E nao deve existir alerta para a "LOJA-02"
