@@ -1,0 +1,50 @@
+# Pseudocodigo: servico de movimentacao de saldo
+
+Task: T-S2-E2-03
+Historia: E2-US03, E2-US04
+Camadas: Dominio
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Centralizar a logica matematica de alteracao de saldo para garantir que
+  todas as operacoes (entrada, saida, inventario) sigam as mesmas regras.
+
+---
+
+Camada: Dominio
+
+Servico: ServicoEstoque
+
+Funcao calcular_incremento(saldo_atual, quantidade):
+  1. Validar quantidade:
+     Se quantidade <= 0:
+       Retornar erro "quantidade invalida para incremento".
+
+  2. Calcular:
+     novo_saldo = saldo_atual + quantidade
+     Retornar novo_saldo.
+
+Funcao calcular_decremento(saldo_atual, quantidade):
+  1. Validar quantidade:
+     Se quantidade <= 0:
+       Retornar erro "quantidade invalida para decremento".
+
+  2. Validar disponibilidade:
+     Se saldo_atual < quantidade:
+       Retornar erro "saldo insuficiente para decremento".
+
+  3. Calcular:
+     novo_saldo = saldo_atual - quantidade
+     Retornar novo_saldo.
+
+---
+
+Observacoes:
+  - Este servico e stateless (nao guarda estado).
+  - Deve ser invocado pelas camadas de Aplicacao (casos de uso de entrada e saida).
+  - Garante a integridade dos dados antes da persistencia no repositorio.
+
+---
+
+Rastreabilidade dos testes:
+  tests/estoque/movimentacao_saldo_test.txt

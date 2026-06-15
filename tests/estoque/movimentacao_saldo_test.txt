@@ -1,0 +1,31 @@
+# Teste pseudocodigo: incremento e decremento de saldo
+
+Task: T-S2-E2-03
+Historia: E2-US03, E2-US04
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: incremento de saldo com sucesso
+  Dado que o estoque atual de um produto e 10
+  Quando o sistema solicitar incremento de 5
+  Entao o novo saldo deve ser 15
+
+Cenario: decremento de saldo com sucesso
+  Dado que o estoque atual de um produto e 20
+  Quando o sistema solicitar decremento de 8
+  Entao o novo saldo deve ser 12
+
+Cenario: erro ao incrementar quantidade negativa
+  Dado que o sistema recebeu uma solicitacao de incremento
+  Quando a quantidade informada for -5
+  Entao o sistema deve retornar erro "quantidade invalida para incremento"
+
+Cenario: erro ao decrementar alem do saldo disponivel
+  Dado que o estoque atual e 5
+  Quando o sistema solicitar decremento de 6
+  Entao o sistema deve retornar erro "saldo insuficiente para decremento"
+  E o saldo deve permanecer 5
+
+Cenario: erro ao decrementar quantidade negativa ou zero
+  Dado que o sistema recebeu uma solicitacao de decremento
+  Quando a quantidade informada for 0
+  Entao o sistema deve retornar erro "quantidade invalida para decremento"
