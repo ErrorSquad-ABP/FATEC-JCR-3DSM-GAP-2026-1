@@ -1,0 +1,74 @@
+# Pseudocodigo: exclusao logica de produto
+
+Task: T-S2-E1-01
+Historia: E1-US03
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Remover um produto do sistema de forma logica, alterando seu status para
+  INATIVO, preservando a integridade do historico de estoque.
+
+---
+
+Camada: Apresentacao
+
+Fluxo tela_excluir_produto:
+  1. Gerente seleciona um produto na listagem.
+  2. Sistema solicita confirmacao: "Deseja realmente excluir este produto?"
+  3. Se confirmado:
+       Chamar caso de uso excluir_produto(produto_id).
+  4. Se sucesso:
+       Exibir "produto excluido com sucesso".
+  5. Se erro:
+       Exibir mensagem de erro (ex: "produto nao encontrado").
+
+---
+
+Camada: Aplicacao
+
+Caso de uso excluir_produto(produto_id):
+  1. Buscar produto no repositorio:
+       produto = repositorio_produtos.buscar_por_id(produto_id)
+  
+  2. Se produto nao existir:
+       Retornar erro "produto nao encontrado".
+
+  3. Alterar status do produto (Dominio):
+       produto.status = "INATIVO"
+       produto.atualizado_em = data_hora_atual()
+
+  4. Salvar alteracao:
+       repositorio_produtos.salvar(produto)
+
+  5. Retornar sucesso.
+
+---
+
+Camada: Dominio
+
+Regras de Negocio:
+  1. A exclusao deve ser sempre LOGICA (status = "INATIVO").
+  2. Produtos INATIVOS nao devem ser removidos fisicamente para manter
+     integridade com registros de estoque (Entidade Estoque).
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_produtos
+
+Funcao buscar_por_id(id):
+  Para cada produto em lista_produtos:
+    Se produto.id for igual a id:
+      Retornar produto
+  Retornar vazio
+
+Funcao salvar(produto):
+  Atualizar produto na lista_produtos
+  Retornar sucesso
+
+---
+
+Rastreabilidade dos testes:
+  tests/produtos/excluir_produto_test.txt
