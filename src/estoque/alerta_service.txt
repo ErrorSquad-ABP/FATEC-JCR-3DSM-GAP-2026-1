@@ -1,13 +1,10 @@
 # Pseudocodigo: servico de disparo de alertas
 
 Task: T-S2-E2-05
+Task de Teste: T-S2-E2-06
 Historia: E2-US05
 Camadas: Aplicacao, Dominio, Infraestrutura
 Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
-
-Objetivo:
-  Monitorar as alteracoes de saldo e notificar o sistema/gerente quando o
-  estoque atingir niveis de seguranca (estoque minimo).
 
 ---
 
@@ -19,7 +16,7 @@ Funcao verificar_limites_estoque(estoque):
   1. Obter quantidade_atual e estoque_minimo.
   
   2. Se quantidade_atual < estoque_minimo:
-       mensagem = "ALERTA: Produto " + estoque.produto_id + " em estado CRITICO na " + estoque.loja_id
+       mensagem = "Produto com saldo abaixo do minimo"
        gerar_notificacao(estoque, "ESTOQUE_BAIXO", mensagem)
        Retornar "ALERTA_DISPARADO"
 
