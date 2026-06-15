@@ -1,0 +1,22 @@
+# Teste pseudocodigo: configuracao de estoque minimo
+
+Task: T-S2-E2-04
+Historia: E2-US05
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: configurar estoque minimo com sucesso
+  Dado que o produto "PROD-001" esta vinculado a "LOJA-01"
+  Quando o gerente definir o estoque minimo como 10 unidades
+  Entao o sistema deve salvar o valor 10 no registro de estoque correspondente
+  E o sistema deve confirmar "estoque minimo configurado com sucesso"
+
+Cenario: rejeitar estoque minimo negativo
+  Dado que o gerente abriu a tela de configuracao de estoque minimo
+  Quando informar o valor -1
+  Entao o sistema deve retornar erro "estoque minimo nao pode ser negativo"
+  E o valor anterior deve ser mantido
+
+Cenario: inicializar estoque minimo como zero para novos registros
+  Dado que um novo registro de estoque esta sendo criado para "PROD-002" na "LOJA-01"
+  Quando o registro for persistido
+  Entao o campo estoque_minimo deve ser 0 por padrao
