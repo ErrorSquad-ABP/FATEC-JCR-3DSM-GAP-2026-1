@@ -1,0 +1,26 @@
+# Teste pseudocodigo: acesso por loja
+
+Task: T-S2-E4-02
+Historia: E4-US02
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: administrador vincula usuario a loja existente
+  Dado que existe usuario "USU-010" com papel GERENTE
+  E existe loja "LOJA-03" ativa
+  Quando o admin executar vincular_usuario_loja("USU-010", "LOJA-03")
+  Entao o vinculo deve ser salvo como ativo
+
+Cenario: gerente acessa estoque da propria loja
+  Dado que usuario "USU-010" esta vinculado a "LOJA-03"
+  Quando solicitar consulta de estoque para "LOJA-03"
+  Entao o sistema deve autorizar acesso
+
+Cenario: gerente nao acessa loja diferente
+  Dado que usuario "USU-010" esta vinculado a "LOJA-03"
+  Quando solicitar consulta de estoque para "LOJA-02"
+  Entao o sistema deve retornar erro "acesso negado para loja"
+
+Cenario: admin acessa todas as lojas
+  Dado que usuario "USU-001" possui papel ADMIN
+  Quando solicitar consulta de estoque para "LOJA-01" e "LOJA-05"
+  Entao o sistema deve autorizar ambas as consultas
