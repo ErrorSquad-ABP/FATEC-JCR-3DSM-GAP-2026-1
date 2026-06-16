@@ -1,0 +1,38 @@
+# Pseudocodigo de teste: acesso por loja
+
+Task: T-S2-E4-02
+Tipo: Pseudo teste executavel (documental)
+
+Objetivo:
+  Simular execucao dos cenarios de autorizacao por perfil.
+
+Funcao executar_teste_acesso_loja():
+  1. cenario_gerente_mesma_loja()
+  2. cenario_gerente_outra_loja()
+  3. cenario_admin_todas_lojas()
+  4. cenario_sem_vinculo()
+  5. retornar "todos os cenarios executados"
+
+Funcao cenario_gerente_mesma_loja():
+  dado usuario = { papel: "GERENTE", id: "USU-010" }
+  dado permissao = { usuario_id: "USU-010", loja_id: "LOJA-02" }
+  quando resultado = validar_permissao_loja(usuario, "LOJA-02")
+  entao assert resultado == "permitido"
+
+Funcao cenario_gerente_outra_loja():
+  dado usuario = { papel: "GERENTE", id: "USU-010" }
+  dado permissao = { usuario_id: "USU-010", loja_id: "LOJA-02" }
+  quando resultado = validar_permissao_loja(usuario, "LOJA-01")
+  entao assert resultado == "acesso negado para loja"
+
+Funcao cenario_admin_todas_lojas():
+  dado usuario = { papel: "ADMIN", id: "USU-001" }
+  quando a = validar_permissao_loja(usuario, "LOJA-01")
+  quando b = validar_permissao_loja(usuario, "LOJA-05")
+  entao assert a == "permitido"
+  entao assert b == "permitido"
+
+Funcao cenario_sem_vinculo():
+  dado usuario = { papel: "GERENTE", id: "USU-999" }
+  quando resultado = validar_permissao_loja(usuario, "LOJA-01")
+  entao assert resultado == "acesso negado para loja"

@@ -18,3 +18,7 @@ Cenario: usuario sem vinculo nao acessa estoque
   Dado que usuario GERENTE nao possui loja vinculada
   Quando consultar qualquer loja
   Entao o sistema deve retornar erro "acesso negado para loja"
+
+Rastreabilidade:
+  src/auth/validacao_acesso_loja.txt
+  src/auth/pseudo_teste_acesso_loja.txt
