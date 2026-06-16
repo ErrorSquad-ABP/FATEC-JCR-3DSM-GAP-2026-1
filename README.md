@@ -25,7 +25,7 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 |--------|---------|---------|
 | ✅ | Product Backlog | [`docs/scrum/product_backlog/product_backlog_ze_mercearia.md`](docs/scrum/product_backlog/product_backlog_ze_mercearia.md) |
 | ✅ | Product Goal | [`docs/scrum/vision/product_goal.md`](docs/scrum/vision/product_goal.md) |
-| ✅ | Sprint Backlog (3 sprints) | [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md`](docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md) |
+| ✅ | Sprint Backlog (sprint única) | [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md`](docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md) |
 | ✅ | Kanban (Scrumban) | [GitHub Projects #2](https://github.com/orgs/ErrorSquad-ABP/projects/2) |
 
 ### Scrum Master (processo)
@@ -34,10 +34,10 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 |--------|----------|---------|
 | ✅ | Guia SM + estado do projeto | [`docs/scrum/sm/guia_scrum_master.md`](docs/scrum/sm/guia_scrum_master.md) |
 | ✅ | RACI · Acordos · Impedimentos | [`docs/scrum/sm/`](docs/scrum/sm/README.md) |
-| ✅ | Definition of Done v1.0 | [`docs/scrum/definition_of_done.md`](docs/scrum/definition_of_done.md) |
-| ✅ | Sprint Planning 1 | [`docs/scrum/ceremonies/sprint_01/sprint_planning.md`](docs/scrum/ceremonies/sprint_01/sprint_planning.md) |
-| 🟡 | Review / Retro 1 (agenda) | [`docs/scrum/ceremonies/sprint_01/`](docs/scrum/ceremonies/README.md) |
-| 🟡 | Incremento Sprint 1 | [`docs/scrum/increments/sprint_01/incremento_sprint_01.md`](docs/scrum/increments/sprint_01/incremento_sprint_01.md) |
+| ✅ | Definition of Done v2.0 | [`docs/scrum/definition_of_done.md`](docs/scrum/definition_of_done.md) |
+| ✅ | Sprint Planning | [`docs/scrum/ceremonies/sprint_planning.md`](docs/scrum/ceremonies/sprint_planning.md) |
+| 🟡 | Review / Retro | [`docs/scrum/ceremonies/README.md`](docs/scrum/ceremonies/README.md) |
+| 🟡 | Incremento da sprint | [`docs/scrum/increments/incremento_sprint_unica.md`](docs/scrum/increments/incremento_sprint_unica.md) |
 
 ### PO e time (entregas técnicas)
 
@@ -62,13 +62,11 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 
 ---
 
-## Sprints (visão rápida)
+## Sprint (visão rápida)
 
 | Sprint | Foco | Sprint Goal (resumo) |
 |--------|------|----------------------|
-| **1** | Fundação + estoque básico | Arquitetura, CI/TDD, auth, produtos, lojas e mockups |
-| **2** | Estoque completo | Movimentações, alertas, permissões por loja e relatórios |
-| **3** | Chatbot + integração | WhatsApp ponta a ponta com validação e baixa de estoque |
+| **Única** | MVP completo | Fundação, estoque completo, relatórios, chatbot e integração |
 
 Detalhamento completo: [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md`](docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md)
 

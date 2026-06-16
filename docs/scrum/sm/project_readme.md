@@ -1,14 +1,14 @@
 # Zé da Mercearia — Scrumban
 
-Quadro **Scrumban** do GAP 2026/1: 3 sprints + fluxo Kanban contínuo.
+Quadro oficial Scrumban do GAP 2026/1 com **sprint única**.
 
 ## Colunas
-Backlog → Ready → In Progress → Review → Testing → Done
+Backlog -> Ready -> In Progress -> Review -> Testing -> Done
 
 ## Campos
-- **Sprint:** Backlog | Sprint 1 | 2 | 3
-- **Story ID:** ex. E1-US01, T-S1-INF-01
+- **Sprint:** Sprint Unica
+- **Story ID:** ex. `E1-US01`, `T-S2-E3-03`
 - **Story Points:** estimativa
 
 ## Docs
-[Guia SM](https://github.com/ErrorSquad-ABP/FATEC-JCR-3DSM-GAP-2026-1/blob/main/docs/scrum/sm/github_projects.md) · [Sprint Backlog](https://github.com/ErrorSquad-ABP/FATEC-JCR-3DSM-GAP-2026-1/blob/main/docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md)
+[Guia SM](github_projects.md) · [Sprint Backlog](../sprint_backlog/sprint_backlog_ze_mercearia.md)
