@@ -36,3 +36,75 @@ Dado que a Review usa dados genericos
 Quando o seed de entidades base for consultado
 Entao deve conter Loja 1 a Loja 5 com IDs LOJA-01 a LOJA-05
 E deve conter Produto Teste A com preco 10,00 e categoria Teste
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_entidades_base():
+  1. cenario_usuario_dados_obrigatorios()
+  2. cenario_loja_cinco_unidades()
+  3. cenario_produto_catalogo()
+  4. cenario_estoque_relaciona_produto_loja()
+  5. cenario_seed_demonstracao()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_usuario_dados_obrigatorios():
+  dado usuario = {
+    id: "USU-001",
+    nome: "Gerente Loja 1",
+    login: "gerente_loja_01",
+    senha_hash: "hash_senha_demo",
+    papel: "GERENTE",
+    status: "ATIVO"
+  }
+  entao assert usuario.id nao esta vazio
+  entao assert usuario.login nao esta vazio
+  entao assert usuario.senha_hash nao esta vazio
+  entao assert usuario.papel esta em ["ADMIN", "GERENTE"]
+
+Funcao cenario_loja_cinco_unidades():
+  dado lojas = gerar_seed_lojas()
+  entao assert quantidade(lojas) == 5
+  entao assert lojas contem id "LOJA-01"
+  entao assert lojas contem id "LOJA-05"
+  para cada loja em lojas:
+    entao assert loja.nome nao esta vazio
+    entao assert loja.status == "ATIVA"
+
+Funcao cenario_produto_catalogo():
+  dado produto = {
+    id: "PROD-001",
+    nome: "Produto Teste A",
+    descricao: "Produto usado para demonstracao da Sprint 1",
+    categoria: "Teste",
+    preco: 10.00,
+    status: "ATIVO"
+  }
+  entao assert produto.nome nao esta vazio
+  entao assert produto.categoria nao esta vazio
+  entao assert produto.preco >= 0
+
+Funcao cenario_estoque_relaciona_produto_loja():
+  dado estoque = {
+    id: "EST-001",
+    produto_id: "PROD-001",
+    loja_id: "LOJA-01",
+    quantidade_atual: 15,
+    atualizado_em: "2026-06-10T00:00:00"
+  }
+  entao assert estoque.produto_id nao esta vazio
+  entao assert estoque.loja_id nao esta vazio
+  entao assert estoque.quantidade_atual >= 0
+  entao assert estoque.atualizado_em nao esta vazio
+
+Funcao cenario_seed_demonstracao():
+  dado documento = ler_arquivo("src/dominio/entidades_base.txt")
+  entao assert documento contem "LOJA-01"
+  entao assert documento contem "LOJA-05"
+  entao assert documento contem "Produto Teste A"
+  entao assert documento contem "preco: 10.00"
+  entao assert documento contem "categoria: \"Teste\""
+
+Rastreabilidade:
+  src/dominio/entidades_base.txt

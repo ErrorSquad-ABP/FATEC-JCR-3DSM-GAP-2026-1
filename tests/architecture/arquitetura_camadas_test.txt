@@ -33,3 +33,45 @@ Dado que a Sprint 1 inclui autenticacao, produtos, lojas e consulta de estoque
 Quando o documento de arquitetura for lido
 Entao ele deve mapear esses modulos para responsabilidades e pastas esperadas
 E deve citar que chatbot, relatorios, alertas e movimentacoes ficam fora desta sprint
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_arquitetura_camadas():
+  1. cenario_camadas_obrigatorias()
+  2. cenario_responsabilidades_separadas()
+  3. cenario_direcao_dependencias()
+  4. cenario_escopo_sprint_1()
+  5. retornar "todos os cenarios executados"
+
+Funcao cenario_camadas_obrigatorias():
+  dado documento = ler_arquivo("docs/architecture/arquitetura_ze_mercearia.md")
+  entao assert documento contem "Apresentacao"
+  entao assert documento contem "Aplicacao"
+  entao assert documento contem "Dominio"
+  entao assert documento contem "Infraestrutura"
+
+Funcao cenario_responsabilidades_separadas():
+  dado documento = ler_arquivo("docs/architecture/arquitetura_ze_mercearia.md")
+  entao assert documento contem "Responsavel por representar entradas e respostas"
+  entao assert documento contem "Responsavel por orquestrar casos de uso"
+  entao assert documento contem "Responsavel pelas entidades, regras de negocio"
+  entao assert documento contem "Responsavel por persistencia e integracoes simuladas"
+
+Funcao cenario_direcao_dependencias():
+  dado documento = ler_arquivo("docs/architecture/arquitetura_ze_mercearia.md")
+  entao assert documento contem "Apresentacao -> Aplicacao -> Dominio"
+  entao assert documento contem "Aplicacao -> Infraestrutura"
+  entao assert documento contem "Dominio concentra regras"
+
+Funcao cenario_escopo_sprint_1():
+  dado documento = ler_arquivo("docs/architecture/arquitetura_ze_mercearia.md")
+  entao assert documento contem "Autenticacao"
+  entao assert documento contem "Produtos"
+  entao assert documento contem "Lojas"
+  entao assert documento contem "Estoque"
+  entao assert documento contem "Fora desta sprint"
+
+Rastreabilidade:
+  docs/architecture/arquitetura_ze_mercearia.md
