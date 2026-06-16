@@ -1,0 +1,42 @@
+CASO_DE_USO: Editar Produto
+
+ENTRADA:
+    id_produto
+    novos_dados
+
+PROCESSO:
+    localizar produto
+
+    SE produto_nao_encontrado
+        RETORNAR "Produto não encontrado"
+
+    atualizar dados
+
+    salvar alterações
+
+SAÍDA:
+    "Produto atualizado com sucesso"
+
+CASO_DE_USO: Listar Produtos
+
+ENTRADA:
+    filtro_nome
+    filtro_categoria
+    filtro_codigo_barras
+
+PROCESSO:
+    obter lista de produtos
+
+    SE filtro_nome informado
+        aplicar filtro por nome
+
+    SE filtro_categoria informada
+        aplicar filtro por categoria
+
+    SE filtro_codigo_barras informado
+        aplicar filtro por código de barras
+
+    ordenar por nome
+
+SAÍDA:
+    lista_filtrada
