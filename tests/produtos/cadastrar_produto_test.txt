@@ -1,35 +1,31 @@
-CENÁRIO: Cadastro de produto válido
+# Teste pseudocodigo: cadastro de produto
 
-DADO usuário autenticado
-QUANDO cadastrar produto com dados válidos
-ENTÃO produto deve ser salvo
+Cenario: cadastro de produto valido
+Dado usuario autenticado
+Quando cadastrar produto com dados validos
+Entao produto deve ser salvo
 
-CENÁRIO: Cadastro com código de barras duplicado
+Cenario: cadastro com codigo de barras duplicado
+Dado produto previamente cadastrado
+Quando cadastrar novo produto com mesmo codigo
+Entao operacao deve falhar
 
-DADO produto previamente cadastrado
-QUANDO cadastrar novo produto com mesmo código
-ENTÃO operação deve falhar
+Cenario: cadastro com preco invalido
+Dado usuario autenticado
+Quando informar preco menor ou igual a zero
+Entao cadastro deve ser rejeitado
 
-CENÁRIO: Cadastro com preço inválido
+Cenario: edicao de produto
+Dado produto existente
+Quando alterar preco
+Entao novo preco deve ser persistido
 
-DADO usuário autenticado
-QUANDO informar preço menor ou igual a zero
-ENTÃO cadastro deve ser rejeitado
+Cenario: filtro por categoria
+Dado produtos de multiplas categorias
+Quando filtrar categoria "Bebidas"
+Entao apenas produtos da categoria devem ser retornados
 
-CENÁRIO: Edição de produto
-
-DADO produto existente
-QUANDO alterar preço
-ENTÃO novo preço deve ser persistido
-
-CENÁRIO: Filtro por categoria
-
-DADO produtos de múltiplas categorias
-QUANDO filtrar categoria "Bebidas"
-ENTÃO apenas produtos da categoria devem ser retornados
-
-CENÁRIO: Exclusão de produto
-
-DADO produto existente
-QUANDO solicitar exclusão
-ENTÃO produto deve ser removido da base
+Cenario: exclusao de produto
+Dado produto existente
+Quando solicitar exclusao
+Entao produto deve ser removido da base
