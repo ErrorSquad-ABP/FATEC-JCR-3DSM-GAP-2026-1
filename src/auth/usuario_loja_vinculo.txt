@@ -1,0 +1,72 @@
+# Pseudocodigo: vinculo usuario x loja e filtro de acesso
+
+Task: T-S2-E4-01
+Historia: E4-US02
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir que o administrador associe um usuario a uma loja
+  e garantir que usuarios nao-admin acessem apenas sua unidade.
+
+Camada: Aplicacao
+
+Caso de uso vincular_usuario_loja(usuario_id, loja_id, executante):
+  1. Se executante.papel for diferente de "ADMIN":
+       Retornar erro "apenas admin pode vincular usuario a loja".
+  2. usuario = repositorio_usuarios.buscar_por_id(usuario_id)
+  3. Se usuario nao existir:
+       Retornar erro "usuario nao encontrado".
+  4. loja = repositorio_lojas.buscar_por_id(loja_id)
+  5. Se loja nao existir:
+       Retornar erro "loja nao encontrada".
+  6. permissao = PermissaoLoja.criar(usuario_id, loja_id, "ATIVA")
+  7. repositorio_permissoes.salvar(permissao)
+  8. Retornar sucesso com usuario_id e loja_id.
+
+Caso de uso validar_acesso_loja(usuario, loja_id):
+  1. Se usuario.papel for "ADMIN":
+       Retornar acesso permitido.
+  2. permissao = repositorio_permissoes.buscar_por_usuario(usuario.id)
+  3. Se permissao nao existir:
+       Retornar erro "acesso negado para loja".
+  4. Se permissao.status for diferente de "ATIVA":
+       Retornar erro "acesso negado para loja".
+  5. Se permissao.loja_id for diferente de loja_id:
+       Retornar erro "acesso negado para loja".
+  6. Retornar acesso permitido.
+
+Camada: Dominio
+
+Entidade PermissaoLoja:
+  atributos:
+    id
+    usuario_id
+    loja_id
+    status
+  regras:
+    - usuario deve ter no maximo uma permissao ativa
+    - status permitido: ATIVA, REVOGADA
+    - permissao ativa autoriza apenas a loja vinculada
+
+Camada: Infraestrutura
+
+Repositorio repositorio_permissoes:
+  dados:
+    permissoes = lista vazia
+
+  funcao salvar(permissao):
+    se existir permissao com mesmo usuario_id:
+      substituir registro
+    senao:
+      adicionar permissao
+    retornar permissao salva
+
+  funcao buscar_por_usuario(usuario_id):
+    para cada permissao em permissoes:
+      se permissao.usuario_id == usuario_id:
+        retornar permissao
+    retornar vazio
+
+Rastreabilidade dos testes:
+  tests/auth/acesso_por_loja_test.txt
