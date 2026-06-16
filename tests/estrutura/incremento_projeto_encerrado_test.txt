@@ -1,0 +1,31 @@
+# Teste pseudocodigo: encerramento do projeto e incremento final
+
+Task: T-S3-E2E-02
+Issue: #42
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: incremento da sprint unica esta documentado como concluido
+Dado que o MVP em pseudocodigo foi entregue
+Quando o PO consultar o documento de incremento
+Entao deve existir docs/scrum/increments/incremento_sprint_unica.md
+E o status deve indicar conclusao do incremento
+E deve listar os modulos entregues (estoque, auth, relatorios, chatbot)
+
+Cenario: cerimonias de fechamento estao registradas
+Dado que a sprint unica foi encerrada
+Quando o SM revisar as atas de cerimonia
+Entao sprint_review.md deve conter checklist de demo preenchido
+E sprint_retrospective.md deve conter acoes de melhoria registradas
+
+Cenario: artefatos de processo estao alinhados ao encerramento
+Dado que o projeto foi dado como encerrado
+Quando o checklist de artefatos for validado
+Entao docs/scrum/sm/checklist_artefatos_por_sprint.md deve marcar entregas tecnicas como concluidas
+E o README raiz deve refletir status final dos recursos principais
+
+Cenario: rastreabilidade do MVP permanece valida
+Dado que o incremento final foi aceito
+Quando o time auditar qualidade
+Entao cada modulo em src/ deve possuir testes correspondentes em tests/
+E o workflow CI deve validar formato Cenario: nos arquivos de teste
+E o teste de integracao T-S3-E2E-01 deve cobrir fluxo estoque ate chatbot

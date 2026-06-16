@@ -1,5 +1,7 @@
 # Zé da Mercearia — GAP 2026/1
 
+**Status:** ✅ Projeto encerrado (MVP entregue em pseudocódigo)
+
 Projeto acadêmico fictício da **FATEC JCR (3º DSM)** que simula a entrega de um produto de software usando **Scrumban**: práticas **Scrum** (artefatos e cerimônias) + fluxo contínuo **Kanban** no **GitHub Projects**.
 
 ## Contexto
@@ -36,16 +38,16 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 | ✅ | RACI · Acordos · Impedimentos | [`docs/scrum/sm/`](docs/scrum/sm/README.md) |
 | ✅ | Definition of Done v2.0 | [`docs/scrum/definition_of_done.md`](docs/scrum/definition_of_done.md) |
 | ✅ | Sprint Planning | [`docs/scrum/ceremonies/sprint_planning.md`](docs/scrum/ceremonies/sprint_planning.md) |
-| 🟡 | Review / Retro | [`docs/scrum/ceremonies/README.md`](docs/scrum/ceremonies/README.md) |
-| 🟡 | Incremento da sprint | [`docs/scrum/increments/incremento_sprint_unica.md`](docs/scrum/increments/incremento_sprint_unica.md) |
+| ✅ | Review / Retro | [`docs/scrum/ceremonies/README.md`](docs/scrum/ceremonies/README.md) |
+| ✅ | Incremento da sprint | [`docs/scrum/increments/incremento_sprint_unica.md`](docs/scrum/increments/incremento_sprint_unica.md) |
 
 ### PO e time (entregas técnicas)
 
 | Status | Artefato | Caminho |
 |--------|----------|---------|
-| 📋 | Mockups | `docs/design/mockups/` |
-| 📋 | Arquitetura | `docs/architecture/` |
-| 📋 | Pseudocódigo · Testes · CI | `src/` · `tests/` · `.github/workflows/` |
+| ✅ | Mockups | [`docs/design/mockups/`](docs/design/mockups/) |
+| ✅ | Arquitetura | [`docs/architecture/`](docs/architecture/) |
+| ✅ | Pseudocódigo · Testes · CI | [`src/`](src/) · [`tests/`](tests/) · [`.github/workflows/`](.github/workflows/) |
 
 ---
 
@@ -66,7 +68,7 @@ Legenda: ✅ disponível · 🟡 em andamento · 📋 a criar (time dev/PO)
 
 | Sprint | Foco | Sprint Goal (resumo) |
 |--------|------|----------------------|
-| **Única** | MVP completo | Fundação, estoque completo, relatórios, chatbot e integração |
+| **Única** | MVP completo | ✅ Encerrada — ver [incremento](docs/scrum/increments/incremento_sprint_unica.md) |
 
 Detalhamento completo: [`docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md`](docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md)
 
