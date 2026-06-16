@@ -33,3 +33,42 @@ Cenario: independencia de alertas por loja (multi-loja)
   Quando o sistema verificar os limites
   Entao deve existir um alerta para a "LOJA-01"
   E nao deve existir alerta para a "LOJA-02"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_disparo_alerta():
+  1. cenario_alerta_abaixo_minimo()
+  2. cenario_alerta_limite_exato()
+  3. cenario_sem_alerta()
+  4. cenario_alerta_multi_loja()
+  5. retornar "sucesso"
+
+Funcao cenario_alerta_abaixo_minimo():
+  dado estoque = { produto_id: "PROD-001", loja_id: "LOJA-01", saldo: 9, estoque_minimo: 10 }
+  quando resultado = verificar_limites_estoque(estoque)
+  entao assert resultado == "ALERTA_DISPARADO"
+  entao assert buscar_ultimo_alerta().tipo == "ESTOQUE_BAIXO"
+
+Funcao cenario_alerta_limite_exato():
+  dado estoque = { produto_id: "PROD-001", loja_id: "LOJA-01", saldo: 5, estoque_minimo: 5 }
+  quando resultado = verificar_limites_estoque(estoque)
+  entao assert resultado == "AVISO_DISPARADO"
+  entao assert buscar_ultimo_alerta().tipo == "ESTOQUE_LIMITE"
+
+Funcao cenario_sem_alerta():
+  dado estoque = { produto_id: "PROD-001", loja_id: "LOJA-01", saldo: 15, estoque_minimo: 10 }
+  quando resultado = verificar_limites_estoque(estoque)
+  entao assert resultado == "SALDO_NORMAL"
+
+Funcao cenario_alerta_multi_loja():
+  dado e1 = { produto_id: "PROD-001", loja_id: "LOJA-01", saldo: 9, estoque_minimo: 10 }
+  dado e2 = { produto_id: "PROD-001", loja_id: "LOJA-02", saldo: 15, estoque_minimo: 10 }
+  quando res1 = verificar_limites_estoque(e1)
+  quando res2 = verificar_limites_estoque(e2)
+  entao assert res1 == "ALERTA_DISPARADO"
+  entao assert res2 == "SALDO_NORMAL"
+
+Rastreabilidade:
+  src/estoque/alerta_service.txt

@@ -20,3 +20,35 @@ Cenario: garantir que produto inativo permanece no repositorio
   Quando o administrador buscar todos os produtos
   Entao o produto "PROD-001" ainda deve constar na lista
   Mas seu status deve ser "INATIVO"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_exclusao_produto():
+  1. cenario_excluir_sucesso()
+  2. cenario_excluir_inexistente()
+  3. cenario_validar_exclusao_logica()
+  4. retornar "sucesso"
+
+Funcao cenario_excluir_sucesso():
+  dado produto = { id: "PROD-001", status: "ATIVO" }
+  quando resultado = excluir_produto(produto.id)
+  entao assert resultado.sucesso == verdadeiro
+  entao assert buscar_produto(produto.id).status == "INATIVO"
+
+Funcao cenario_excluir_inexistente():
+  dado produto_id = "PROD-999"
+  quando resultado = excluir_produto(produto_id)
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "produto nao encontrado"
+
+Funcao cenario_validar_exclusao_logica():
+  dado produto_id = "PROD-001"
+  quando excluir_produto(produto_id)
+  quando todos = buscar_todos_produtos_incluindo_inativos()
+  entao assert todos.contem(produto_id) == verdadeiro
+  entao assert buscar_produto(produto_id).status == "INATIVO"
+
+Rastreabilidade:
+  src/produtos/excluir_produto.txt
