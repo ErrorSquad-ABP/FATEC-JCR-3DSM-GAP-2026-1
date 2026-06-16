@@ -1,55 +1,77 @@
-CASO_DE_USO: Cadastrar Loja
+Task: T-S1-C1-01
+Historia: E2-US01
+Camadas: Aplicacao, Dominio, Infraestrutura
 
-ENTRADA:
-    nome
-    endereco
+Objetivo:
+  Gerenciar as cinco unidades da rede.
 
-PROCESSO:
-    validar dados
+---
 
-    criar Loja
+Camada: Dominio
 
-    salvar Loja
+Loja:
+  id
+  nome
+  endereco
+  status
 
-SAÍDA:
-    "Loja cadastrada com sucesso"
+Regras:
+  1. Nome da loja e obrigatorio.
+  2. Loja inicia com status ATIVA.
+  3. Exclusao deve ser logica.
 
-CASO_DE_USO: Consultar Loja
+---
 
-ENTRADA:
-    id_loja
+Camada: Aplicacao
 
-PROCESSO:
-    localizar loja
+Fluxo principal cadastrar_loja(dados_loja):
 
-SAÍDA:
-    dados da loja
+  Validar dados
 
-CASO_DE_USO: Atualizar Loja
+  Criar loja
 
-ENTRADA:
-    id_loja
-    novos_dados
+  Salvar loja
 
-PROCESSO:
-    localizar loja
+  Retornar sucesso
 
-    atualizar dados
+---
 
-    salvar alterações
+Fluxo principal consultar_loja(id_loja):
 
-SAÍDA:
-    "Loja atualizada com sucesso"
+  Buscar loja
 
-CASO_DE_USO: Excluir Loja
+  Retornar dados
 
-ENTRADA:
-    id_loja
+---
 
-PROCESSO:
-    localizar loja
+Fluxo principal atualizar_loja(id_loja, dados):
 
-    remover loja
+  Buscar loja
 
-SAÍDA:
-    "Loja removida com sucesso"
+  Atualizar campos
+
+  Salvar alteracoes
+
+  Retornar sucesso
+
+---
+
+Fluxo principal excluir_loja(id_loja):
+
+  Buscar loja
+
+  loja.status = "INATIVA"
+
+  Salvar alteracoes
+
+  Retornar sucesso
+
+---
+
+Camada: Infraestrutura
+
+repositorio_lojas:
+  salvar(loja)
+  buscar_por_id(id)
+  atualizar(loja)
+  listar()

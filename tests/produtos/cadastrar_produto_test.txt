@@ -1,31 +1,104 @@
-# Teste pseudocodigo: cadastro de produto
+Task: T-S1-C1-03
+Historia: E1-US02
 
-Cenario: cadastro de produto valido
-Dado usuario autenticado
-Quando cadastrar produto com dados validos
-Entao produto deve ser salvo
+Cenario: cadastrar produto valido
+  Dado que usuario autenticado possui permissao
+  Quando cadastrar produto com dados validos
+  Entao o produto deve ser salvo
 
-Cenario: cadastro com codigo de barras duplicado
-Dado produto previamente cadastrado
-Quando cadastrar novo produto com mesmo codigo
-Entao operacao deve falhar
+Cenario: codigo de barras duplicado
+  Dado que produto ja existe
+  Quando cadastrar produto com mesmo codigo de barras
+  Entao o sistema deve retornar "codigo duplicado"
 
-Cenario: cadastro com preco invalido
-Dado usuario autenticado
-Quando informar preco menor ou igual a zero
-Entao cadastro deve ser rejeitado
+Cenario: preco invalido
+  Dado que usuario autenticado possui permissao
+  Quando informar preco igual ou menor que zero
+  Entao o sistema deve retornar "preco invalido"
 
-Cenario: edicao de produto
-Dado produto existente
-Quando alterar preco
-Entao novo preco deve ser persistido
+Cenario: editar produto
+  Dado que produto existe
+  Quando alterar o preco
+  Entao o novo preco deve ser persistido
 
-Cenario: filtro por categoria
-Dado produtos de multiplas categorias
-Quando filtrar categoria "Bebidas"
-Entao apenas produtos da categoria devem ser retornados
+Cenario: filtrar por categoria
+  Dado que existem produtos de diversas categorias
+  Quando filtrar categoria "BEBIDAS"
+  Entao somente produtos da categoria devem ser retornados
 
-Cenario: exclusao de produto
-Dado produto existente
-Quando solicitar exclusao
-Entao produto deve ser removido da base
+Cenario: excluir produto
+  Dado que produto existe
+  Quando solicitar exclusao
+  Entao produto deve ficar inativo
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_produtos():
+  1. cenario_cadastro_valido()
+  2. cenario_codigo_duplicado()
+  3. cenario_preco_invalido()
+  4. cenario_edicao_produto()
+  5. cenario_filtro_categoria()
+  6. cenario_exclusao_produto()
+  7. retornar "todos os cenarios executados"
+
+Funcao cenario_cadastro_valido():
+  dado produto = {
+    nome: "Arroz",
+    codigo_barras: "123",
+    preco: 10
+  }
+
+  quando resultado = cadastrar_produto(produto)
+
+  entao assert resultado.sucesso == verdadeiro
+
+Funcao cenario_codigo_duplicado():
+  dado produto_existente = {
+    codigo_barras: "123"
+  }
+
+  dado novo_produto = {
+    codigo_barras: "123"
+  }
+
+  quando resultado = cadastrar_produto(novo_produto)
+
+  entao assert resultado.motivo == "CODIGO_DUPLICADO"
+
+Funcao cenario_preco_invalido():
+  dado produto = {
+    nome: "Arroz",
+    preco: 0
+  }
+
+  quando resultado = cadastrar_produto(produto)
+
+  entao assert resultado.motivo == "PRECO_INVALIDO"
+
+Funcao cenario_edicao_produto():
+  dado produto_id = 1
+
+  quando resultado =
+    editar_produto(produto_id, { preco: 15 })
+
+  entao assert resultado.sucesso == verdadeiro
+
+Funcao cenario_filtro_categoria():
+  quando lista =
+    listar_produtos({ categoria: "BEBIDAS" })
+
+  entao assert todos_categoria(lista, "BEBIDAS")
+
+Funcao cenario_exclusao_produto():
+  dado produto_id = 1
+
+  quando resultado = excluir_produto(produto_id)
+
+  entao assert resultado.sucesso == verdadeiro
+
+Rastreabilidade:
+  src/produtos/cadastro_produto.txt
+  src/produtos/edicao_produto.txt

@@ -1,0 +1,58 @@
+Task: T-S1-C1-01
+Historia: E1-US01
+
+Cenario: login com credenciais validas
+  Dado que usuario "admin" esta cadastrado
+  E senha informada esta correta
+  Quando realizar login
+  Entao o sistema deve autenticar o usuario
+  E deve gerar sessao ativa
+
+Cenario: login com senha invalida
+  Dado que usuario "admin" esta cadastrado
+  Quando informar senha incorreta
+  Entao o sistema deve retornar "usuario ou senha invalidos"
+
+Cenario: usuario inexistente
+  Dado que usuario nao esta cadastrado
+  Quando tentar realizar login
+  Entao o sistema deve retornar "usuario ou senha invalidos"
+
+Cenario: logout
+  Dado que usuario esta autenticado
+  Quando solicitar logout
+  Entao a sessao deve ser encerrada
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_autenticacao():
+  1. cenario_login_valido()
+  2. cenario_senha_invalida()
+  3. cenario_usuario_inexistente()
+  4. cenario_logout()
+  5. retornar "todos os cenarios executados"
+
+Funcao cenario_login_valido():
+  dado usuario = { login: "admin", senha: "123456" }
+  quando resultado = autenticar(usuario)
+  entao assert resultado.status == "autenticado"
+
+Funcao cenario_senha_invalida():
+  dado usuario = { login: "admin", senha: "senha_errada" }
+  quando resultado = autenticar(usuario)
+  entao assert resultado.mensagem == "usuario ou senha invalidos"
+
+Funcao cenario_usuario_inexistente():
+  dado usuario = { login: "nao_existe", senha: "123456" }
+  quando resultado = autenticar(usuario)
+  entao assert resultado.mensagem == "usuario ou senha invalidos"
+
+Funcao cenario_logout():
+  dado sessao_ativa = verdadeiro
+  quando resultado = logout()
+  entao assert resultado.status == "sessao_encerrada"
+
+Rastreabilidade:
+  src/auth/autenticacao_usuario.txt
