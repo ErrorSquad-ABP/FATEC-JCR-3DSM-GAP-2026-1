@@ -1,0 +1,197 @@
+# Pseudocodigo: notificacao WhatsApp ao gerente
+
+Task: T-S3-C4-01
+Historia: E4-US01
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Notificar o gerente pelo WhatsApp sempre que um pedido for confirmado
+  pelo cliente no chatbot.
+
+---
+
+Entrada:
+  pedido_confirmado {
+    pedido_id: texto
+    loja_id: texto
+    cliente_nome: texto
+    cliente_telefone: texto
+    itens: lista
+    valor_total: decimal
+    confirmado_em: data_hora
+  }
+
+Saida de sucesso:
+  Notificacao enviada ao telefone WhatsApp do gerente da loja.
+
+Saidas de erro:
+  "pedido nao confirmado"
+  "gerente da loja nao encontrado"
+  "telefone do gerente nao configurado"
+  "falha ao enviar notificacao"
+
+---
+
+Camada: Aplicacao
+
+Servico: ServicoNotificacaoGerente
+
+Funcao notificar_gerente_pedido_confirmado(pedido_confirmado):
+  1. Validar pedido:
+     Se pedido_confirmado estiver vazio:
+       Retornar erro "pedido nao confirmado".
+     Se pedido_confirmado.pedido_id estiver vazio:
+       Retornar erro "pedido nao confirmado".
+
+  2. Confirmar status do pedido:
+     pedido = repositorio_pedidos.buscar_por_id(pedido_confirmado.pedido_id)
+     Se pedido nao existir ou pedido.status for diferente de "CONFIRMADO":
+       Retornar erro "pedido nao confirmado".
+
+  3. Buscar gerente responsavel pela loja:
+     gerente = repositorio_usuarios.buscar_gerente_por_loja(pedido_confirmado.loja_id)
+     Se gerente nao existir:
+       Retornar erro "gerente da loja nao encontrado".
+
+  4. Validar telefone WhatsApp do gerente:
+     Se gerente.telefone_whatsapp estiver vazio:
+       Retornar erro "telefone do gerente nao configurado".
+
+  5. Montar mensagem:
+     mensagem = montar_mensagem_pedido_confirmado(pedido_confirmado)
+
+  6. Enviar notificacao pelo gateway WhatsApp:
+     resultado_envio = gateway_whatsapp.enviar_mensagem(
+       telefone_destino = gerente.telefone_whatsapp,
+       texto = mensagem
+     )
+
+     Se resultado_envio for erro:
+       registrar_notificacao(pedido_confirmado, gerente, mensagem, "ERRO_ENVIO")
+       Retornar erro "falha ao enviar notificacao".
+
+  7. Registrar notificacao enviada:
+     registrar_notificacao(pedido_confirmado, gerente, mensagem, "ENVIADA")
+
+  8. Retornar sucesso.
+
+Funcao montar_mensagem_pedido_confirmado(pedido_confirmado):
+  1. Iniciar mensagem:
+     texto = "Novo pedido confirmado: " + pedido_confirmado.pedido_id
+
+  2. Adicionar dados do cliente:
+     texto = texto + "\nCliente: " + pedido_confirmado.cliente_nome
+     texto = texto + "\nTelefone: " + pedido_confirmado.cliente_telefone
+
+  3. Adicionar itens:
+     texto = texto + "\nItens:"
+     Para cada item em pedido_confirmado.itens:
+       texto = texto + "\n- " + item.quantidade + "x " + item.produto_nome
+
+  4. Adicionar total:
+     texto = texto + "\nTotal: R$ " + pedido_confirmado.valor_total
+
+  5. Retornar texto.
+
+Funcao registrar_notificacao(pedido_confirmado, gerente, mensagem, status):
+  1. Criar notificacao:
+     notificacao = NotificacaoWhatsAppGerente {
+       id: repositorio_notificacoes.proximo_id(),
+       pedido_id: pedido_confirmado.pedido_id,
+       loja_id: pedido_confirmado.loja_id,
+       gerente_id: gerente.id,
+       telefone_destino: gerente.telefone_whatsapp,
+       mensagem: mensagem,
+       status: status,
+       criada_em: data_hora_atual()
+     }
+
+  2. Salvar notificacao:
+     repositorio_notificacoes.salvar(notificacao)
+
+---
+
+Camada: Dominio
+
+Entidade: NotificacaoWhatsAppGerente
+  Atributos:
+    id: texto obrigatorio
+    pedido_id: texto obrigatorio
+    loja_id: texto obrigatorio
+    gerente_id: texto obrigatorio
+    telefone_destino: texto obrigatorio
+    mensagem: texto obrigatorio
+    status: texto (ENVIADA, ERRO_ENVIO)
+    criada_em: data_hora obrigatoria
+
+Regras de Negocio:
+  1. A notificacao ao gerente so deve ocorrer apos pedido confirmado.
+  2. Cada pedido confirmado deve gerar uma notificacao para o gerente da loja.
+  3. A mensagem deve conter o identificador do pedido e os dados minimos do cliente.
+  4. Falha de envio deve ser registrada para auditoria e reprocessamento futuro.
+  5. Esta task envia o resumo operacional; o detalhamento completo dos dados
+     do cliente sera refinado na task T-S3-C4-02.
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_usuarios
+
+Funcao buscar_gerente_por_loja(loja_id):
+  Para cada usuario em lista_usuarios:
+    Se usuario.papel for "GERENTE"
+    E usuario.loja_id for igual a loja_id
+    E usuario.status for "ATIVO":
+      Retornar usuario
+  Retornar vazio
+
+Repositorio simulado: repositorio_pedidos
+
+Funcao buscar_por_id(pedido_id):
+  Para cada pedido em lista_pedidos:
+    Se pedido.id for igual a pedido_id:
+      Retornar pedido
+  Retornar vazio
+
+Repositorio simulado: repositorio_notificacoes
+
+Dados em memoria:
+  notificacoes_whatsapp_gerente = lista vazia
+
+Funcao proximo_id():
+  Retornar "NOTIF-GER-" + proximo_numero_sequencial()
+
+Funcao salvar(notificacao):
+  Adicionar notificacao na lista notificacoes_whatsapp_gerente
+  Retornar sucesso
+
+Gateway simulado: gateway_whatsapp
+
+Funcao enviar_mensagem(telefone_destino, texto):
+  1. Se telefone_destino estiver vazio ou texto estiver vazio:
+       Retornar erro "falha ao enviar notificacao".
+
+  2. Registrar envio simulado ao WhatsApp:
+       envio = {
+         mensagem_id_externo: "WPP-GER-" + proximo_numero_sequencial(),
+         telefone_destino: telefone_destino,
+         texto: texto,
+         enviado_em: data_hora_atual()
+       }
+
+  3. Retornar sucesso com envio.
+
+---
+
+Integracao (Gatilho):
+  Esta funcao deve ser chamada pelo fluxo de confirmacao de pedido logo apos:
+    1. pedido.status ser alterado para "CONFIRMADO";
+    2. baixa de estoque ser concluida com sucesso;
+    3. resumo do pedido ser enviado ao cliente.
+
+---
+
+Rastreabilidade dos testes:
+  tests/chatbot/notificacao_whatsapp_gerente_test.txt (previsto em T-S3-C4-03)
