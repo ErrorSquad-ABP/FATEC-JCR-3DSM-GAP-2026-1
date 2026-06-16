@@ -1,0 +1,402 @@
+# Pseudocodigo: confirmacao e cancelamento do pedido
+
+Task: T-S3-C2-02
+Historia: E2-US03
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Descrever a confirmacao e o cancelamento do pedido quando a sessao do
+  chatbot estiver aguardando uma resposta final do cliente.
+
+  Este fluxo e chamado conceitualmente pela maquina de estados do pedido
+  quando sessao_chat.estado_atual for "AGUARDANDO_CONFIRMACAO".
+
+---
+
+Entrada:
+  sessao_chat
+  texto_mensagem
+
+Saida:
+  resposta para o cliente
+  sessao atualizada
+  pedido atualizado
+  indicacao se deve solicitar baixa de estoque
+  indicacao se deve notificar gerente neste momento
+  proxima integracao a ser executada
+
+Saidas de erro:
+  "sessao nao encontrada"
+  "texto da mensagem e obrigatorio"
+  "pedido em andamento nao encontrado"
+  "pedido nao esta aguardando confirmacao"
+
+---
+
+Camada: Dominio
+
+Status aceitos neste fluxo:
+  AGUARDANDO_CONFIRMACAO:
+    Pedido esta pronto para receber CONFIRMAR ou CANCELAR.
+
+  CONFIRMADO:
+    Pedido ja foi confirmado.
+    Nao pode ser confirmado novamente.
+    Nao pode solicitar nova baixa de estoque.
+
+  CANCELADO:
+    Pedido ja foi cancelado.
+    Nao pode ser confirmado posteriormente.
+    Nao pode baixar estoque.
+
+Estados da sessao atualizados por este fluxo:
+  AGUARDANDO_CONFIRMACAO:
+    Mantido quando a resposta for invalida.
+
+  CONFIRMADO:
+    Definido quando a mensagem indicar confirmacao valida.
+
+  CANCELADO:
+    Definido quando a mensagem indicar cancelamento valido.
+
+Campos conceituais atualizados no pedido:
+  status
+  confirmado_em
+  cancelado_em
+  atualizado_em
+
+---
+
+Regras:
+  1. Este fluxo somente confirma ou cancela pedidos com status "AGUARDANDO_CONFIRMACAO".
+  2. Mensagens diferentes de CONFIRMAR ou CANCELAR mantem o pedido aguardando confirmacao.
+  3. Pedido confirmado nao pode ser confirmado novamente.
+  4. Pedido confirmado nao pode ser cancelado por este fluxo.
+  5. Pedido cancelado nao pode ser confirmado posteriormente.
+  6. Cancelamento nunca solicita baixa de estoque.
+  7. Cancelamento nunca envia notificacao ao gerente.
+  8. Confirmacao apenas marca que a baixa de estoque deve ser solicitada pela task T-S3-C3-02.
+  9. Esta task nao executa baixa automatica transacional.
+  10. Esta task nao envia notificacao ao gerente.
+  11. Notificacao ao gerente so deve ocorrer apos a baixa automatica transacional ser concluida com sucesso.
+  12. Respostas devem ser idempotentes para evitar baixa duplicada e notificacao duplicada.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal processar_confirmacao_ou_cancelamento(sessao_chat, texto_mensagem):
+  1. Validar sessao:
+     Se sessao_chat nao existir:
+       Retornar erro "sessao nao encontrada".
+
+  2. Validar mensagem:
+     Se texto_mensagem estiver vazio:
+       Retornar erro "texto da mensagem e obrigatorio".
+
+  3. Buscar pedido em andamento:
+     pedido = repositorio_pedidos.buscar_por_id(sessao_chat.pedido_em_andamento_id).
+
+     Se pedido nao existir:
+       Retornar erro controlado "pedido em andamento nao encontrado".
+
+  4. Verificar status atual do pedido:
+     Se pedido.status for "CONFIRMADO":
+       Retornar tratar_pedido_ja_confirmado(sessao_chat, pedido).
+
+     Se pedido.status for "CANCELADO":
+       Retornar tratar_pedido_ja_cancelado(sessao_chat, pedido).
+
+     Se pedido.status for diferente de "AGUARDANDO_CONFIRMACAO":
+       resposta = "Este pedido nao esta aguardando confirmacao."
+       Retornar saida com:
+         resposta = resposta
+         sessao_atualizada = sessao_chat
+         pedido_atualizado = pedido
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         proxima_integracao = nenhuma
+
+  5. Normalizar mensagem:
+     texto_normalizado = normalizar_texto(texto_mensagem).
+
+  6. Verificar intencao de confirmacao:
+     Se mensagem_indica_confirmacao(texto_normalizado) for verdadeiro:
+       Retornar confirmar_pedido(sessao_chat, pedido).
+
+  7. Verificar intencao de cancelamento:
+     Se mensagem_indica_cancelamento(texto_normalizado) for verdadeiro:
+       Retornar cancelar_pedido(sessao_chat, pedido).
+
+  8. Tratar resposta invalida:
+     Retornar tratar_resposta_invalida(sessao_chat, pedido).
+
+---
+
+Fluxo auxiliar confirmar_pedido(sessao_chat, pedido):
+  1. Validar status:
+     Se pedido.status for "CONFIRMADO":
+       Retornar tratar_pedido_ja_confirmado(sessao_chat, pedido).
+
+     Se pedido.status for "CANCELADO":
+       Retornar tratar_pedido_ja_cancelado(sessao_chat, pedido).
+
+     Se pedido.status for diferente de "AGUARDANDO_CONFIRMACAO":
+       resposta = "Este pedido nao esta aguardando confirmacao."
+       Retornar saida sem alterar status.
+
+  2. Confirmar pedido:
+     pedido.status = "CONFIRMADO".
+     pedido.confirmado_em = data_hora_atual().
+     pedido.atualizado_em = data_hora_atual().
+
+  3. Atualizar sessao:
+     sessao_chat.estado_atual = "CONFIRMADO".
+     sessao_chat.atualizado_em = data_hora_atual().
+
+  4. Salvar alteracoes:
+     repositorio_pedidos.salvar(pedido).
+     repositorio_sessoes.salvar(sessao_chat).
+
+  5. Retornar saida conceitual:
+     resposta = "Pedido confirmado. Vamos finalizar a baixa de estoque antes de avisar o gerente."
+     sessao_atualizada = sessao_chat
+     pedido_atualizado = pedido
+     deve_baixar_estoque = verdadeiro
+     deve_notificar_gerente = falso
+     proxima_integracao = "T-S3-C3-02"
+
+  6. Observacao obrigatoria:
+     A baixa de estoque nao e executada aqui.
+     A notificacao ao gerente nao e enviada aqui.
+     A notificacao ao gerente so podera ocorrer apos sucesso da baixa automatica transacional.
+
+---
+
+Fluxo auxiliar cancelar_pedido(sessao_chat, pedido):
+  1. Validar status:
+     Se pedido.status for "CONFIRMADO":
+       Retornar tratar_pedido_ja_confirmado(sessao_chat, pedido).
+
+     Se pedido.status for "CANCELADO":
+       Retornar tratar_pedido_ja_cancelado(sessao_chat, pedido).
+
+     Se pedido.status for diferente de "AGUARDANDO_CONFIRMACAO":
+       resposta = "Este pedido nao esta aguardando confirmacao."
+       Retornar saida sem alterar status.
+
+  2. Cancelar pedido:
+     pedido.status = "CANCELADO".
+     pedido.cancelado_em = data_hora_atual().
+     pedido.atualizado_em = data_hora_atual().
+
+  3. Atualizar sessao:
+     sessao_chat.estado_atual = "CANCELADO".
+     sessao_chat.atualizado_em = data_hora_atual().
+
+  4. Salvar alteracoes:
+     repositorio_pedidos.salvar(pedido).
+     repositorio_sessoes.salvar(sessao_chat).
+
+  5. Retornar saida conceitual:
+     resposta = "Pedido cancelado. Nenhuma baixa de estoque foi realizada."
+     sessao_atualizada = sessao_chat
+     pedido_atualizado = pedido
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     proxima_integracao = nenhuma
+
+  6. Garantias do cancelamento:
+     Nao chamar baixa_automatica_transacional.
+     Nao registrar movimentacao de estoque.
+     Nao chamar notificacao_whatsapp_gerente.
+
+---
+
+Fluxo auxiliar tratar_pedido_ja_confirmado(sessao_chat, pedido):
+  1. Manter status:
+     pedido.status permanece "CONFIRMADO".
+     sessao_chat.estado_atual = "CONFIRMADO".
+
+  2. Atualizar somente a sessao se necessario:
+     sessao_chat.atualizado_em = data_hora_atual().
+     repositorio_sessoes.salvar(sessao_chat).
+
+  3. Retornar saida conceitual:
+     resposta = "Este pedido ja foi confirmado."
+     sessao_atualizada = sessao_chat
+     pedido_atualizado = pedido
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     proxima_integracao = nenhuma
+
+  4. Garantias:
+     Nao solicitar nova baixa de estoque.
+     Nao duplicar notificacao ao gerente.
+     Nao alterar confirmado_em.
+
+---
+
+Fluxo auxiliar tratar_pedido_ja_cancelado(sessao_chat, pedido):
+  1. Manter status:
+     pedido.status permanece "CANCELADO".
+     sessao_chat.estado_atual = "CANCELADO".
+
+  2. Atualizar somente a sessao se necessario:
+     sessao_chat.atualizado_em = data_hora_atual().
+     repositorio_sessoes.salvar(sessao_chat).
+
+  3. Retornar saida conceitual:
+     resposta = "Este pedido ja foi cancelado. Voce pode iniciar um novo pedido se desejar."
+     sessao_atualizada = sessao_chat
+     pedido_atualizado = pedido
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     proxima_integracao = nenhuma
+
+  4. Garantias:
+     Nao permitir confirmacao posterior.
+     Nao baixar estoque.
+     Nao notificar gerente.
+     Nao alterar cancelado_em.
+
+---
+
+Fluxo auxiliar tratar_resposta_invalida(sessao_chat, pedido):
+  1. Manter pedido aguardando confirmacao:
+     pedido.status = "AGUARDANDO_CONFIRMACAO".
+     sessao_chat.estado_atual = "AGUARDANDO_CONFIRMACAO".
+
+  2. Atualizar sessao:
+     sessao_chat.atualizado_em = data_hora_atual().
+     repositorio_sessoes.salvar(sessao_chat).
+
+  3. Retornar mensagem de orientacao:
+     resposta = "Responda CONFIRMAR para concluir o pedido ou CANCELAR para desistir."
+     sessao_atualizada = sessao_chat
+     pedido_atualizado = pedido
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     proxima_integracao = nenhuma
+
+  4. Garantias:
+     Nao baixar estoque.
+     Nao notificar gerente.
+     Nao alterar confirmado_em.
+     Nao alterar cancelado_em.
+
+---
+
+Servicos auxiliares:
+
+Servico normalizar_texto(texto_mensagem):
+  1. Converter para minusculo.
+  2. Remover acentos.
+  3. Remover pontuacao.
+  4. Remover espacos duplicados.
+  5. Remover espacos no inicio e no fim.
+  6. Retornar texto normalizado.
+
+Servico mensagem_indica_confirmacao(texto_normalizado):
+  1. Retornar verdadeiro se texto_normalizado for exatamente:
+       "confirmar"
+       "confirmo"
+       "sim"
+       "pode confirmar"
+       "fechar pedido"
+       "concluir pedido"
+
+  2. Caso contrario:
+       Retornar falso.
+
+Servico mensagem_indica_cancelamento(texto_normalizado):
+  1. Retornar verdadeiro se texto_normalizado for exatamente:
+       "cancelar"
+       "cancela"
+       "nao"
+       "desistir"
+       "cancelar pedido"
+
+  2. Observacao:
+       A mensagem original "nao" e tratada depois da normalizacao,
+       portanto cobre tambem a forma com acento digitada pelo cliente.
+
+  3. Caso contrario:
+       Retornar falso.
+
+---
+
+Camada: Infraestrutura
+
+Integracoes usadas:
+  repositorio_sessoes:
+    salvar(sessao_chat)
+
+  repositorio_pedidos:
+    buscar_por_id(pedido_id)
+    salvar(pedido)
+
+Integracoes apenas sinalizadas:
+  baixa_automatica_transacional:
+    Deve ser chamada pela task T-S3-C3-02 quando deve_baixar_estoque for verdadeiro.
+    Nao e executada neste pseudocodigo.
+
+  notificacao_whatsapp_gerente:
+    Deve ocorrer somente apos baixa automatica transacional concluida com sucesso.
+    Nao e executada neste pseudocodigo.
+
+---
+
+Exemplos de comportamento:
+
+Exemplo: confirmar pedido aguardando confirmacao
+  Dado pedido.status = "AGUARDANDO_CONFIRMACAO"
+  E sessao_chat.estado_atual = "AGUARDANDO_CONFIRMACAO"
+  Quando texto_mensagem = "CONFIRMAR"
+  Entao pedido.status passa para "CONFIRMADO"
+  E sessao_chat.estado_atual passa para "CONFIRMADO"
+  E deve_baixar_estoque = verdadeiro
+  E deve_notificar_gerente = falso neste momento
+  E proxima_integracao = "T-S3-C3-02"
+
+Exemplo: cancelar pedido aguardando confirmacao
+  Dado pedido.status = "AGUARDANDO_CONFIRMACAO"
+  E sessao_chat.estado_atual = "AGUARDANDO_CONFIRMACAO"
+  Quando texto_mensagem = "CANCELAR"
+  Entao pedido.status passa para "CANCELADO"
+  E sessao_chat.estado_atual passa para "CANCELADO"
+  E deve_baixar_estoque = falso
+  E deve_notificar_gerente = falso
+  E proxima_integracao = nenhuma
+
+Exemplo: resposta invalida
+  Dado pedido.status = "AGUARDANDO_CONFIRMACAO"
+  Quando texto_mensagem = "talvez"
+  Entao pedido.status permanece "AGUARDANDO_CONFIRMACAO"
+  E sessao_chat.estado_atual permanece "AGUARDANDO_CONFIRMACAO"
+  E a resposta orienta CONFIRMAR ou CANCELAR
+  E nao baixa estoque
+  E nao notifica gerente
+
+Exemplo: tentativa de confirmar pedido cancelado
+  Dado pedido.status = "CANCELADO"
+  Quando texto_mensagem = "CONFIRMAR"
+  Entao pedido.status permanece "CANCELADO"
+  E deve_baixar_estoque = falso
+  E deve_notificar_gerente = falso
+  E resposta informa que o pedido ja foi cancelado
+
+Exemplo: confirmacao duplicada
+  Dado pedido.status = "CONFIRMADO"
+  Quando texto_mensagem = "CONFIRMAR"
+  Entao pedido.status permanece "CONFIRMADO"
+  E deve_baixar_estoque = falso
+  E deve_notificar_gerente = falso
+  E resposta informa que o pedido ja foi confirmado
+
+---
+
+Rastreabilidade:
+  src/chatbot/maquina_estados_pedido.txt
+  tests/chatbot/fluxo_pedido_test.txt
