@@ -1,0 +1,194 @@
+# Pseudocodigo: resumo com dados do cliente
+
+Task: T-S3-C4-02
+Historia: E4-US02
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Montar o resumo do pedido confirmado com nome e telefone do cliente para
+  envio ao gerente pelo WhatsApp.
+
+---
+
+Entrada:
+  pedido_id
+
+Saida de sucesso:
+  Resumo formatado com pedido, loja, cliente, telefone, itens e valor total.
+
+Saidas de erro:
+  "pedido nao encontrado"
+  "pedido nao confirmado"
+  "cliente nao encontrado"
+  "telefone do cliente e obrigatorio"
+  "pedido sem itens"
+
+---
+
+Camada: Aplicacao
+
+Servico: ServicoResumoPedidoGerente
+
+Funcao gerar_resumo_pedido_para_gerente(pedido_id):
+  1. Buscar pedido:
+     pedido = repositorio_pedidos.buscar_por_id(pedido_id)
+     Se pedido nao existir:
+       Retornar erro "pedido nao encontrado".
+
+  2. Validar status:
+     Se pedido.status for diferente de "CONFIRMADO":
+       Retornar erro "pedido nao confirmado".
+
+  3. Buscar cliente:
+     cliente = repositorio_clientes.buscar_por_id(pedido.cliente_id)
+     Se cliente nao existir:
+       Retornar erro "cliente nao encontrado".
+
+  4. Validar telefone do cliente:
+     Se cliente.telefone_whatsapp estiver vazio:
+       Retornar erro "telefone do cliente e obrigatorio".
+
+  5. Buscar itens do pedido:
+     itens = repositorio_itens_pedido.listar_por_pedido(pedido.id)
+     Se itens estiver vazio:
+       Retornar erro "pedido sem itens".
+
+  6. Montar dados consolidados:
+     resumo = ResumoPedidoGerente {
+       pedido_id: pedido.id,
+       loja_id: pedido.loja_id,
+       cliente_nome: cliente.nome,
+       cliente_telefone: cliente.telefone_whatsapp,
+       itens: itens,
+       valor_total: pedido.valor_total,
+       confirmado_em: pedido.confirmado_em
+     }
+
+  7. Formatar mensagem:
+     mensagem = formatar_resumo_pedido_gerente(resumo)
+
+  8. Retornar mensagem.
+
+Funcao formatar_resumo_pedido_gerente(resumo):
+  1. Iniciar texto:
+     texto = "Pedido confirmado: " + resumo.pedido_id
+
+  2. Adicionar loja:
+     texto = texto + "\nLoja: " + resumo.loja_id
+
+  3. Adicionar dados do cliente:
+     texto = texto + "\nCliente: " + resumo.cliente_nome
+     texto = texto + "\nTelefone: " + resumo.cliente_telefone
+
+  4. Adicionar itens:
+     texto = texto + "\nItens:"
+     Para cada item em resumo.itens:
+       subtotal = item.quantidade * item.preco_unitario
+       texto = texto + "\n- " + item.quantidade + "x " + item.produto_nome
+       texto = texto + " | R$ " + item.preco_unitario
+       texto = texto + " | subtotal R$ " + subtotal
+
+  5. Adicionar total:
+     texto = texto + "\nTotal: R$ " + resumo.valor_total
+
+  6. Adicionar data de confirmacao:
+     texto = texto + "\nConfirmado em: " + resumo.confirmado_em
+
+  7. Retornar texto.
+
+---
+
+Camada: Dominio
+
+Entidade: ResumoPedidoGerente
+  Atributos:
+    pedido_id: texto obrigatorio
+    loja_id: texto obrigatorio
+    cliente_nome: texto obrigatorio
+    cliente_telefone: texto obrigatorio
+    itens: lista obrigatoria
+    valor_total: decimal obrigatorio
+    confirmado_em: data_hora obrigatoria
+
+Entidade: ItemResumoPedido
+  Atributos:
+    produto_id: texto obrigatorio
+    produto_nome: texto obrigatorio
+    quantidade: inteiro obrigatorio
+    preco_unitario: decimal obrigatorio
+
+Regras de Negocio:
+  1. O resumo para gerente deve ser gerado apenas para pedido confirmado.
+  2. O nome e telefone do cliente sao obrigatorios no resumo.
+  3. O resumo deve conter todos os itens do pedido com quantidade e preco.
+  4. O valor total deve refletir o pedido confirmado, nao um recalculo posterior.
+  5. O resumo formatado sera usado pela notificacao WhatsApp ao gerente
+     descrita na task T-S3-C4-01.
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_pedidos
+
+Funcao buscar_por_id(pedido_id):
+  Para cada pedido em lista_pedidos:
+    Se pedido.id for igual a pedido_id:
+      Retornar pedido
+  Retornar vazio
+
+Repositorio simulado: repositorio_clientes
+
+Funcao buscar_por_id(cliente_id):
+  Para cada cliente em lista_clientes:
+    Se cliente.id for igual a cliente_id:
+      Retornar cliente
+  Retornar vazio
+
+Repositorio simulado: repositorio_itens_pedido
+
+Funcao listar_por_pedido(pedido_id):
+  itens_do_pedido = lista vazia
+
+  Para cada item em lista_itens_pedido:
+    Se item.pedido_id for igual a pedido_id:
+      Adicionar item em itens_do_pedido
+
+  Retornar itens_do_pedido
+
+Seed demo para Sprint 3:
+  Cliente {
+    id: "CLI-001",
+    nome: "Cliente Teste",
+    telefone_whatsapp: "(11) 99999-0000"
+  }
+
+  Pedido {
+    id: "PED-001",
+    cliente_id: "CLI-001",
+    loja_id: "LOJA-01",
+    status: "CONFIRMADO",
+    valor_total: 20.00,
+    confirmado_em: "2026-06-10T10:00:00"
+  }
+
+  ItemPedido {
+    pedido_id: "PED-001",
+    produto_id: "PROD-001",
+    produto_nome: "Produto Teste A",
+    quantidade: 2,
+    preco_unitario: 10.00
+  }
+
+---
+
+Integracao:
+  O servico notificar_gerente_pedido_confirmado deve chamar
+  gerar_resumo_pedido_para_gerente antes de enviar a mensagem pelo gateway
+  WhatsApp simulado.
+
+---
+
+Rastreabilidade dos testes:
+  tests/chatbot/notificacao_whatsapp_gerente_test.txt (previsto em T-S3-C4-03)
