@@ -1,0 +1,142 @@
+# Teste pseudocodigo: estoque insuficiente no pedido via WhatsApp
+
+Task: T-S3-C3-04
+Historia: E3-US01, E3-US02, E3-US03
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: recusar pedido quando quantidade solicitada for maior que o saldo
+  Dado:
+    que a sessao WhatsApp do cliente esta em "MONTANDO_PEDIDO"
+    E o produto "Arroz" existe na "LOJA-01"
+    E o estoque inicial de "Arroz" na "LOJA-01" e 3 unidade(s)
+    E nao existe pedido confirmado para esta solicitacao
+  Quando:
+    o cliente enviar "quero comprar 5 unidades de arroz"
+  Entao:
+    o sistema deve validar a disponibilidade antes de avancar o pedido
+    E deve identificar que a quantidade solicitada e maior que o saldo disponivel
+    E o pedido nao deve ser confirmado
+    E o pedido deve permanecer sem baixa de estoque
+    E o saldo final de "Arroz" na "LOJA-01" deve permanecer 3 unidade(s)
+    E nenhuma movimentacao de estoque deve ser registrada
+    E nenhuma notificacao ao gerente deve ser enviada
+    E a resposta deve informar estoque insuficiente
+    E a resposta deve orientar o cliente a escolher quantidade menor ou outro produto
+
+Cenario: permitir pedido quando quantidade solicitada for igual ao saldo
+  Dado:
+    que a sessao WhatsApp do cliente esta em "MONTANDO_PEDIDO"
+    E o produto "Feijao" existe na "LOJA-01"
+    E o estoque inicial de "Feijao" na "LOJA-01" e 4 unidade(s)
+    E nao existe pedido confirmado para esta solicitacao
+  Quando:
+    o cliente enviar "quero comprar 4 unidades de feijao"
+  Entao:
+    o sistema deve validar que a quantidade solicitada e igual ao saldo disponivel
+    E o pedido pode avancar para confirmacao
+    E pedido.status deve ser "AGUARDANDO_CONFIRMACAO"
+    E sessao.estado_atual deve ser "AGUARDANDO_CONFIRMACAO"
+    E o saldo final de "Feijao" na "LOJA-01" deve permanecer 4 unidade(s) antes da confirmacao
+    E nenhuma movimentacao de estoque deve ser registrada antes da confirmacao
+    E nenhuma notificacao ao gerente deve ser enviada antes da confirmacao e baixa concluida
+
+Cenario: bloquear confirmacao se o saldo ficou insuficiente antes da confirmacao
+  Dado:
+    que a sessao WhatsApp do cliente esta em "AGUARDANDO_CONFIRMACAO"
+    E existe o pedido "PED-LEITE-001" com status "AGUARDANDO_CONFIRMACAO"
+    E o pedido "PED-LEITE-001" solicita 2 unidade(s) de "Leite"
+    E no momento do resumo havia saldo suficiente de "Leite"
+    E outro pedido reduziu o estoque de "Leite" na "LOJA-01" para 1 unidade(s)
+  Quando:
+    o cliente enviar "CONFIRMAR"
+  Entao:
+    o sistema deve consultar o estoque em tempo real antes de confirmar o pedido
+    E deve identificar que o saldo atual e insuficiente para o pedido
+    E o pedido nao deve ser confirmado
+    E o pedido deve receber status ou retorno de falha por estoque insuficiente
+    E a baixa de estoque nao deve ocorrer
+    E o saldo final de "Leite" na "LOJA-01" deve permanecer 1 unidade(s)
+    E nenhuma movimentacao de estoque deve ser registrada para este pedido
+    E nenhuma notificacao ao gerente deve ser enviada
+    E a resposta deve informar que o estoque mudou e ficou insuficiente
+
+Cenario: impedir baixa duplicada do mesmo pedido confirmado
+  Dado:
+    que a sessao WhatsApp do cliente esta em "CONFIRMADO"
+    E existe o pedido "PED-001" com status "CONFIRMADO"
+    E o pedido "PED-001" possui 2 unidade(s) de "Arroz"
+    E o estoque inicial de "Arroz" na "LOJA-01" era 10 unidade(s)
+    E a primeira confirmacao ja baixou o saldo de "Arroz" para 8 unidade(s)
+    E ja existe uma movimentacao de estoque vinculada ao pedido "PED-001"
+    E a notificacao ao gerente do pedido "PED-001" ja foi enviada uma vez
+  Quando:
+    o cliente enviar novamente "CONFIRMAR"
+  Entao:
+    o pedido deve permanecer com status "CONFIRMADO"
+    E o saldo final de "Arroz" na "LOJA-01" deve permanecer 8 unidade(s)
+    E nenhuma nova movimentacao de estoque deve ser registrada
+    E a notificacao ao gerente nao deve ser duplicada
+    E a resposta deve informar que o pedido ja foi confirmado
+
+Cenario: concorrencia basica com dois pedidos disputando o mesmo saldo
+  Dado:
+    que o produto "Cafe" existe na "LOJA-01"
+    E o estoque inicial de "Cafe" na "LOJA-01" e 3 unidade(s)
+    E existe o pedido "PED-A" com status "AGUARDANDO_CONFIRMACAO"
+    E o pedido "PED-A" solicita 2 unidade(s) de "Cafe"
+    E existe o pedido "PED-B" com status "AGUARDANDO_CONFIRMACAO"
+    E o pedido "PED-B" solicita 2 unidade(s) de "Cafe"
+  Quando:
+    os pedidos "PED-A" e "PED-B" tentarem confirmar praticamente ao mesmo tempo
+  Entao:
+    o sistema deve executar a baixa de estoque de forma transacional
+    E apenas um pedido deve ser confirmado
+    E apenas uma baixa de estoque deve ocorrer
+    E o saldo final de "Cafe" na "LOJA-01" nao pode ficar negativo
+    E o saldo final esperado deve ser 1 unidade(s)
+    E o pedido recusado deve receber mensagem de estoque insuficiente
+    E o pedido recusado nao deve gerar movimentacao de estoque
+    E o pedido recusado nao deve notificar o gerente
+    E a movimentacao de estoque deve manter consistencia entre pedido, produto e loja
+
+Cenario: pedido cancelado nao deve validar baixa nem consumir estoque
+  Dado:
+    que a sessao WhatsApp do cliente esta em "CANCELADO"
+    E existe o pedido "PED-002" com status "CANCELADO"
+    E o pedido "PED-002" possui 1 unidade(s) de "Acucar"
+    E o estoque inicial de "Acucar" na "LOJA-01" e 6 unidade(s)
+  Quando:
+    o cliente enviar "CONFIRMAR"
+  Entao:
+    o pedido deve permanecer com status "CANCELADO"
+    E o sistema nao deve validar baixa de estoque para pedido cancelado
+    E o saldo final de "Acucar" na "LOJA-01" deve permanecer 6 unidade(s)
+    E nenhuma movimentacao de estoque deve ser registrada
+    E nenhuma notificacao ao gerente deve ser enviada
+    E a resposta deve informar que o pedido ja foi cancelado
+
+Cenario: produto sem estoque deve sugerir alternativa sem confirmar pedido
+  Dado:
+    que a sessao WhatsApp do cliente esta em "MONTANDO_PEDIDO"
+    E o produto solicitado "Refrigerante Cola" existe na categoria "Bebidas"
+    E o estoque inicial de "Refrigerante Cola" na "LOJA-01" e 0 unidade(s)
+    E existe o produto alternativo "Refrigerante Guarana" na mesma categoria
+    E o estoque inicial de "Refrigerante Guarana" na "LOJA-01" e 8 unidade(s)
+  Quando:
+    o cliente enviar "quero comprar Refrigerante Cola"
+  Entao:
+    o sistema deve identificar que o produto solicitado esta sem estoque
+    E o pedido de "Refrigerante Cola" nao deve ser confirmado
+    E a baixa de estoque nao deve ocorrer
+    E o saldo final de "Refrigerante Cola" na "LOJA-01" deve permanecer 0 unidade(s)
+    E o saldo final de "Refrigerante Guarana" na "LOJA-01" deve permanecer 8 unidade(s)
+    E nenhuma movimentacao de estoque deve ser registrada
+    E nenhuma notificacao ao gerente deve ser enviada
+    E a resposta deve informar produto indisponivel
+    E a resposta deve sugerir "Refrigerante Guarana" como alternativa disponivel
+
+Rastreabilidade:
+  tests/chatbot/fluxo_pedido_test.txt
+  src/chatbot/validacao_disponibilidade_pedido.txt
+  src/chatbot/baixa_automatica_transacional.txt
+  src/chatbot/falta_alternativas.txt
