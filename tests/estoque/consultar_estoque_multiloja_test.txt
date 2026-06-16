@@ -1,0 +1,33 @@
+# Teste pseudocodigo: consulta estoque multiloja
+
+Cenario: consulta de estoque consolidado
+Dado produto existente em cinco lojas
+Quando consultar estoque
+Entao sistema deve retornar quantidade de cada loja
+E estoque total consolidado
+
+Cenario: produto sem estoque
+Dado produto cadastrado
+E quantidade zero em todas as lojas
+Quando consultar estoque
+Entao total deve ser igual a zero
+
+Cenario: produto inexistente
+Dado codigo de produto invalido
+Quando consultar estoque
+Entao mensagem "Produto nao encontrado" deve ser exibida
+
+Cenario: estoque distribuido
+Dado produto com:
+    Loja 1 = 10
+    Loja 2 = 20
+    Loja 3 = 15
+    Loja 4 = 5
+    Loja 5 = 0
+Quando consultar estoque
+Entao estoque total deve ser 50
+
+Cenario: alerta de estoque minimo
+Dado produto com estoque abaixo do minimo em uma loja
+Quando consultar estoque
+Entao sistema deve sinalizar a loja com alerta

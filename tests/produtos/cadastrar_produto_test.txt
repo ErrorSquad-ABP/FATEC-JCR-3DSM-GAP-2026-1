@@ -1,0 +1,31 @@
+# Teste pseudocodigo: cadastro de produto
+
+Cenario: cadastro de produto valido
+Dado usuario autenticado
+Quando cadastrar produto com dados validos
+Entao produto deve ser salvo
+
+Cenario: cadastro com codigo de barras duplicado
+Dado produto previamente cadastrado
+Quando cadastrar novo produto com mesmo codigo
+Entao operacao deve falhar
+
+Cenario: cadastro com preco invalido
+Dado usuario autenticado
+Quando informar preco menor ou igual a zero
+Entao cadastro deve ser rejeitado
+
+Cenario: edicao de produto
+Dado produto existente
+Quando alterar preco
+Entao novo preco deve ser persistido
+
+Cenario: filtro por categoria
+Dado produtos de multiplas categorias
+Quando filtrar categoria "Bebidas"
+Entao apenas produtos da categoria devem ser retornados
+
+Cenario: exclusao de produto
+Dado produto existente
+Quando solicitar exclusao
+Entao produto deve ser removido da base
