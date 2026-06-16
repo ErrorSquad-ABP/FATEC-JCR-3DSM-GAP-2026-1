@@ -1,0 +1,22 @@
+# Teste pseudocodigo: integracao estoque x chatbot
+
+Task: T-S3-C0-01
+Historias: E3-US01, E3-US02 (chatbot)
+
+Cenario: chatbot consulta disponibilidade em tempo real
+  Dado que o cliente solicita "Produto Teste A"
+  Quando o chatbot chamar consultar_disponibilidade_produto
+  Entao o modulo de estoque deve retornar saldo por loja
+  E o chatbot deve responder disponibilidade ao cliente
+
+Cenario: confirmar pedido dispara baixa de estoque
+  Dado que o pedido foi confirmado pelo cliente
+  Quando o chatbot chamar confirmar_baixa_estoque
+  Entao o estoque deve registrar decremento transacional
+  E retornar sucesso para o fluxo de pedido
+
+Cenario: erro no estoque nao confirma pedido
+  Dado que o estoque retorna "saldo insuficiente"
+  Quando o chatbot tentar confirmar o pedido
+  Entao o pedido deve permanecer pendente
+  E o chatbot deve informar indisponibilidade
