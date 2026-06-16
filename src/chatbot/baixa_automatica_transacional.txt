@@ -1,0 +1,423 @@
+# Pseudocodigo: baixa automatica transacional do pedido
+
+Task: T-S3-C3-02
+Historia: E3-US02, E4-US01
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Descrever a baixa automatica transacional de estoque apos confirmacao valida
+  de um pedido feito pelo chatbot WhatsApp.
+
+  A baixa deve revalidar saldo dentro da transacao, impedir saldo negativo,
+  impedir baixa duplicada, registrar movimentacao de estoque e liberar a
+  notificacao ao gerente somente depois da baixa concluida com sucesso.
+
+---
+
+Entrada:
+  pedido_id
+  usuario_sistema
+  origem
+
+Saida:
+  resultado_baixa
+  saldo atualizado
+  movimentacao registrada
+  indicacao se deve notificar gerente
+
+Saidas de erro:
+  "pedido nao encontrado"
+  "pedido nao confirmado"
+  "pedido cancelado"
+  "baixa ja realizada"
+  "estoque insuficiente"
+  "falha ao baixar estoque"
+
+---
+
+Camada: Dominio
+
+ResultadoBaixaEstoque:
+  sucesso
+  motivo
+  pedido_id
+  produto_id
+  loja_id
+  quantidade_baixada
+  saldo_anterior
+  saldo_final
+  movimentacao_id
+  deve_notificar_gerente
+  mensagem_cliente
+
+Motivos possiveis:
+  BAIXA_REALIZADA
+  BAIXA_JA_REALIZADA
+  ESTOQUE_INSUFICIENTE
+  PEDIDO_NAO_ENCONTRADO
+  PEDIDO_NAO_CONFIRMADO
+  PEDIDO_CANCELADO
+  FALHA_TRANSACAO
+
+Movimentacao de estoque obrigatoria:
+  id
+  produto_id
+  loja_id
+  tipo = "SAIDA"
+  origem = "CHATBOT_WHATSAPP"
+  pedido_id
+  quantidade
+  saldo_anterior
+  saldo_final
+  criado_em
+  observacao
+
+Observacao da movimentacao:
+  "Saida automatica gerada por pedido confirmado no chatbot WhatsApp."
+
+Regras:
+  1. Baixa automatica so pode ocorrer para pedido com status "CONFIRMADO".
+  2. Pedido com status "AGUARDANDO_CONFIRMACAO" nao baixa estoque.
+  3. Pedido com status "CANCELADO" nao baixa estoque.
+  4. Pedido com status "EM_MONTAGEM" nao baixa estoque.
+  5. Pedido com status "FALHA_ESTOQUE" nao baixa estoque.
+  6. Pedido com estoque_baixado = verdadeiro nao pode baixar novamente.
+  7. A baixa deve consultar o saldo atual dentro da transacao.
+  8. A consulta de saldo dentro da transacao deve usar bloqueio conceitual.
+  9. Saldo final nunca pode ficar negativo.
+  10. A movimentacao de estoque so deve ser registrada se o saldo for decrementado.
+  11. Se qualquer etapa falhar, a transacao deve ser desfeita.
+  12. A notificacao ao gerente so e liberada apos a transacao confirmada com sucesso.
+  13. Esta task nao monta o conteudo da notificacao ao gerente.
+  14. Esta task nao sugere alternativas para falta de estoque.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal executar_baixa_automatica_transacional(pedido_id):
+  1. Buscar pedido:
+     pedido = repositorio_pedidos.buscar_por_id(pedido_id).
+
+  2. Validar existencia:
+     Se pedido nao existir:
+       Retornar montar_resultado_falha(
+         motivo = "PEDIDO_NAO_ENCONTRADO",
+         mensagem_cliente = "Nao encontrei o pedido para baixar estoque."
+       ).
+
+  3. Validar pedido para baixa:
+     resultado_validacao = validar_pedido_para_baixa(pedido).
+     Se resultado_validacao indicar falha:
+       Retornar resultado_validacao.
+
+  4. Verificar baixa duplicada:
+     resultado_duplicidade = verificar_baixa_duplicada(pedido).
+     Se resultado_duplicidade indicar baixa ja realizada:
+       Retornar resultado_duplicidade.
+
+  5. Iniciar transacao:
+     transacao = iniciar_transacao().
+
+  6. Tentar executar baixa dentro da transacao:
+     Tentar:
+       estoque = consultar_saldo_com_bloqueio(pedido.produto_id, pedido.loja_id).
+
+       saldo_anterior = estoque.quantidade_atual.
+
+       resultado_saldo = validar_saldo_para_baixa(saldo_anterior, pedido.quantidade).
+
+       Se resultado_saldo indicar estoque insuficiente:
+         pedido.status_estoque = "FALHA_ESTOQUE".
+         pedido.atualizado_em = data_hora_atual().
+         repositorio_pedidos.salvar(pedido).
+         desfazer_transacao(transacao).
+
+         Retornar montar_resultado_falha(
+           motivo = "ESTOQUE_INSUFICIENTE",
+           pedido = pedido,
+           saldo_anterior = saldo_anterior,
+           saldo_final = saldo_anterior,
+           mensagem_cliente = "O estoque mudou e agora nao ha quantidade suficiente para concluir o pedido."
+         ).
+
+       estoque_atualizado = decrementar_saldo_estoque(estoque, pedido.quantidade).
+
+       movimentacao = registrar_movimentacao_saida(pedido, estoque, estoque_atualizado).
+
+       pedido_atualizado = marcar_pedido_com_estoque_baixado(pedido, movimentacao).
+
+       repositorio_estoque.salvar(estoque_atualizado).
+       repositorio_movimentacoes.salvar(movimentacao).
+       repositorio_pedidos.salvar(pedido_atualizado).
+
+       confirmar_transacao(transacao).
+
+       Retornar montar_resultado_sucesso(pedido_atualizado, movimentacao, saldo_anterior, estoque_atualizado.quantidade_atual).
+
+     Se ocorrer qualquer falha:
+       desfazer_transacao(transacao).
+
+       Retornar montar_resultado_falha(
+         motivo = "FALHA_TRANSACAO",
+         pedido = pedido,
+         mensagem_cliente = "Nao foi possivel baixar o estoque do pedido. Tente novamente."
+       ).
+
+---
+
+Fluxo auxiliar validar_pedido_para_baixa(pedido):
+  1. Se pedido.status for "CONFIRMADO":
+     Retornar "pedido valido para baixa".
+
+  2. Se pedido.status for "CANCELADO":
+     Retornar ResultadoBaixaEstoque com:
+       sucesso = falso
+       motivo = "PEDIDO_CANCELADO"
+       pedido_id = pedido.id
+       produto_id = pedido.produto_id
+       loja_id = pedido.loja_id
+       quantidade_baixada = 0
+       saldo_anterior = vazio
+       saldo_final = vazio
+       movimentacao_id = vazio
+       deve_notificar_gerente = falso
+       mensagem_cliente = "Este pedido foi cancelado e nao pode baixar estoque."
+
+  3. Se pedido.status for "AGUARDANDO_CONFIRMACAO", "EM_MONTAGEM" ou "FALHA_ESTOQUE":
+     Retornar ResultadoBaixaEstoque com:
+       sucesso = falso
+       motivo = "PEDIDO_NAO_CONFIRMADO"
+       pedido_id = pedido.id
+       produto_id = pedido.produto_id
+       loja_id = pedido.loja_id
+       quantidade_baixada = 0
+       saldo_anterior = vazio
+       saldo_final = vazio
+       movimentacao_id = vazio
+       deve_notificar_gerente = falso
+       mensagem_cliente = "O pedido ainda nao esta confirmado para baixar estoque."
+
+  4. Garantias:
+     Nenhuma baixa ocorre para pedido nao confirmado.
+     Nenhuma movimentacao e registrada para pedido nao confirmado.
+     Nenhuma notificacao ao gerente e liberada para pedido nao confirmado.
+
+---
+
+Fluxo auxiliar verificar_baixa_duplicada(pedido):
+  1. Se pedido.estoque_baixado for verdadeiro:
+     Retornar ResultadoBaixaEstoque com:
+       sucesso = verdadeiro
+       motivo = "BAIXA_JA_REALIZADA"
+       pedido_id = pedido.id
+       produto_id = pedido.produto_id
+       loja_id = pedido.loja_id
+       quantidade_baixada = 0
+       saldo_anterior = vazio
+       saldo_final = vazio
+       movimentacao_id = pedido.movimentacao_estoque_id
+       deve_notificar_gerente = falso
+       mensagem_cliente = "Este pedido ja foi confirmado anteriormente."
+
+  2. Se pedido.estoque_baixado nao for verdadeiro:
+     Retornar "baixa ainda nao realizada".
+
+  3. Garantias:
+     Nao baixar estoque novamente.
+     Nao registrar nova movimentacao.
+     Nao duplicar notificacao ao gerente.
+
+---
+
+Fluxo auxiliar iniciar_transacao():
+  1. Abrir unidade de trabalho conceitual.
+  2. Preparar rollback para estoque, movimentacao e pedido.
+  3. Retornar transacao.
+
+Fluxo auxiliar consultar_saldo_com_bloqueio(produto_id, loja_id):
+  1. Buscar registro de estoque por produto e loja.
+  2. Aplicar bloqueio conceitual no registro ate o fim da transacao.
+  3. Se registro nao existir:
+     Criar resultado conceitual com quantidade_atual = 0.
+  4. Retornar estoque bloqueado.
+
+Fluxo auxiliar validar_saldo_para_baixa(saldo_atual, quantidade):
+  1. Se quantidade for menor ou igual a zero:
+     Retornar erro "quantidade invalida".
+
+  2. Se saldo_atual for menor que quantidade:
+     Retornar erro "estoque insuficiente".
+
+  3. Se saldo_atual for maior ou igual a quantidade:
+     Retornar "saldo suficiente".
+
+Fluxo auxiliar decrementar_saldo_estoque(estoque, quantidade):
+  1. Calcular saldo_final = estoque.quantidade_atual - quantidade.
+
+  2. Se saldo_final for menor que zero:
+     Retornar erro "saldo negativo nao permitido".
+
+  3. Atualizar estoque:
+     estoque.quantidade_atual = saldo_final.
+     estoque.atualizado_em = data_hora_atual().
+
+  4. Retornar estoque atualizado.
+
+Fluxo auxiliar registrar_movimentacao_saida(pedido, estoque_original, estoque_atualizado):
+  1. Criar movimentacao:
+     movimentacao.id = repositorio_movimentacoes.proximo_id().
+     movimentacao.produto_id = pedido.produto_id.
+     movimentacao.loja_id = pedido.loja_id.
+     movimentacao.tipo = "SAIDA".
+     movimentacao.origem = "CHATBOT_WHATSAPP".
+     movimentacao.pedido_id = pedido.id.
+     movimentacao.quantidade = pedido.quantidade.
+     movimentacao.saldo_anterior = estoque_original.quantidade_atual.
+     movimentacao.saldo_final = estoque_atualizado.quantidade_atual.
+     movimentacao.criado_em = data_hora_atual().
+     movimentacao.observacao = "Saida automatica gerada por pedido confirmado no chatbot WhatsApp."
+
+  2. Retornar movimentacao.
+
+Fluxo auxiliar marcar_pedido_com_estoque_baixado(pedido, movimentacao):
+  1. Atualizar pedido:
+     pedido.estoque_baixado = verdadeiro.
+     pedido.estoque_baixado_em = data_hora_atual().
+     pedido.movimentacao_estoque_id = movimentacao.id.
+     pedido.atualizado_em = data_hora_atual().
+
+  2. Retornar pedido atualizado.
+
+Fluxo auxiliar confirmar_transacao(transacao):
+  1. Confirmar todas as alteracoes da transacao.
+  2. Liberar bloqueios conceituais de estoque.
+  3. Tornar saldo, movimentacao e pedido persistidos em conjunto.
+
+Fluxo auxiliar desfazer_transacao(transacao):
+  1. Desfazer alteracoes pendentes de estoque.
+  2. Desfazer movimentacao pendente.
+  3. Desfazer alteracoes pendentes do pedido quando ainda nao confirmadas.
+  4. Liberar bloqueios conceituais.
+
+---
+
+Fluxo auxiliar montar_resultado_sucesso(pedido, movimentacao, saldo_anterior, saldo_final):
+  1. Retornar ResultadoBaixaEstoque com:
+     sucesso = verdadeiro
+     motivo = "BAIXA_REALIZADA"
+     pedido_id = pedido.id
+     produto_id = pedido.produto_id
+     loja_id = pedido.loja_id
+     quantidade_baixada = pedido.quantidade
+     saldo_anterior = saldo_anterior
+     saldo_final = saldo_final
+     movimentacao_id = movimentacao.id
+     deve_notificar_gerente = verdadeiro
+     mensagem_cliente = "Pedido confirmado com sucesso. Seu pedido sera separado pela loja."
+
+  2. Observacao:
+     A notificacao ao gerente ainda nao e enviada aqui.
+     O resultado apenas libera a proxima integracao para notificar.
+
+Fluxo auxiliar montar_resultado_falha(motivo, pedido, saldo_anterior, saldo_final, mensagem_cliente):
+  1. Retornar ResultadoBaixaEstoque com:
+     sucesso = falso
+     motivo = motivo
+     pedido_id = pedido.id quando pedido existir
+     produto_id = pedido.produto_id quando pedido existir
+     loja_id = pedido.loja_id quando pedido existir
+     quantidade_baixada = 0
+     saldo_anterior = saldo_anterior quando informado
+     saldo_final = saldo_final quando informado
+     movimentacao_id = vazio
+     deve_notificar_gerente = falso
+     mensagem_cliente = mensagem_cliente
+
+  2. Garantias:
+     Saldo original permanece preservado.
+     Pedido nao e marcado como estoque_baixado.
+     Movimentacao nao e registrada.
+     Notificacao ao gerente nao e liberada.
+
+---
+
+Concorrencia e consistencia:
+  1. A consulta de saldo dentro da transacao deve usar bloqueio conceitual.
+  2. Enquanto um pedido baixa estoque, outro pedido concorrente deve aguardar ou receber falha controlada.
+  3. Dois pedidos concorrentes nao podem consumir o mesmo saldo ao mesmo tempo.
+  4. O saldo final nunca pode ficar negativo.
+  5. A validacao da task T-S3-C3-01 nao substitui esta revalidacao dentro da transacao.
+  6. A transacao desta task e a garantia final de consistencia.
+  7. Se a transacao falhar, nenhuma etapa parcial pode ficar persistida.
+
+---
+
+Camada: Infraestrutura
+
+Integracoes usadas:
+  repositorio_pedidos:
+    buscar_por_id(pedido_id)
+    salvar(pedido)
+
+  repositorio_estoque:
+    buscar_por_produto_e_loja_com_bloqueio(produto_id, loja_id)
+    salvar(estoque)
+
+  repositorio_movimentacoes:
+    proximo_id()
+    salvar(movimentacao)
+
+  controle_transacional:
+    iniciar_transacao()
+    confirmar_transacao()
+    desfazer_transacao()
+
+Integracoes conceituais:
+  validacao_disponibilidade_pedido:
+    Valida disponibilidade antes do resumo e antes da confirmacao.
+    Nao substitui a revalidacao transacional desta task.
+
+  notificacao_whatsapp_gerente:
+    Deve ser chamada somente quando ResultadoBaixaEstoque.deve_notificar_gerente for verdadeiro.
+    O conteudo da notificacao nao e implementado nesta task.
+
+  falta_alternativas:
+    Pode tratar estoque insuficiente apos falha de baixa.
+    A sugestao detalhada de alternativas nao e implementada nesta task.
+
+---
+
+Exemplos de resultado:
+
+Sucesso na baixa:
+  sucesso = verdadeiro
+  motivo = "BAIXA_REALIZADA"
+  deve_notificar_gerente = verdadeiro
+  mensagem_cliente = "Pedido confirmado com sucesso. Seu pedido sera separado pela loja."
+
+Baixa duplicada:
+  sucesso = verdadeiro
+  motivo = "BAIXA_JA_REALIZADA"
+  deve_notificar_gerente = falso
+  mensagem_cliente = "Este pedido ja foi confirmado anteriormente."
+
+Estoque insuficiente:
+  sucesso = falso
+  motivo = "ESTOQUE_INSUFICIENTE"
+  deve_notificar_gerente = falso
+  mensagem_cliente = "O estoque mudou e agora nao ha quantidade suficiente para concluir o pedido."
+
+Pedido cancelado:
+  sucesso = falso
+  motivo = "PEDIDO_CANCELADO"
+  deve_notificar_gerente = falso
+  mensagem_cliente = "Este pedido foi cancelado e nao pode baixar estoque."
+
+---
+
+Rastreabilidade:
+  src/chatbot/validacao_disponibilidade_pedido.txt
+  src/chatbot/confirmacao_cancelamento_pedido.txt
+  tests/chatbot/estoque_insuficiente_test.txt
