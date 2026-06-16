@@ -1,0 +1,21 @@
+# Teste pseudocodigo: exportacao de relatorio
+
+Task: T-S2-E3-03
+Historia: E3-US02
+
+Cenario: exportar relatorio em CSV com cabecalho padrao
+  Dado que o relatorio consolidado contem itens
+  Quando exportar no formato CSV
+  Entao a primeira linha deve ser "loja,produto,qty"
+  E as linhas seguintes devem conter os dados consolidados
+
+Cenario: exportar relatorio em PDF simulado
+  Dado que o relatorio consolidado contem itens
+  Quando exportar no formato PDF
+  Entao o arquivo deve incluir titulo "Relatorio Consolidado de Estoque"
+  E deve incluir total geral no rodape
+
+Cenario: rejeitar formato invalido
+  Dado que foi solicitado formato "XML"
+  Quando executar exportacao
+  Entao o sistema deve retornar erro "formato de exportacao invalido"
