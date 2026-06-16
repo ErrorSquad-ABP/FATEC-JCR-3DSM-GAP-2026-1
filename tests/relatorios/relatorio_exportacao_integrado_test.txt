@@ -1,0 +1,21 @@
+# Teste pseudocodigo: relatorio e exportacao integrados
+
+Task: T-S2-E3-03
+Historias: E3-US01, E3-US02
+
+Cenario: gerar relatorio e exportar CSV no mesmo fluxo
+  Dado que o consolidado foi gerado com total_geral maior que zero
+  Quando exportar em CSV
+  Entao o arquivo deve conter cabecalho "loja,produto,qty"
+  E deve conter ao menos uma linha de dados
+
+Cenario: gerar relatorio e exportar PDF no mesmo fluxo
+  Dado que o consolidado foi gerado com total_geral maior que zero
+  Quando exportar em PDF
+  Entao o conteudo deve conter "Relatorio Consolidado de Estoque"
+  E deve conter "Total geral"
+
+Cenario: consistencia entre consolidado e exportacao
+  Dado que o relatorio consolidado possui total_geral 120
+  Quando exportar em CSV e PDF
+  Entao ambos os formatos devem refletir o mesmo total consolidado
