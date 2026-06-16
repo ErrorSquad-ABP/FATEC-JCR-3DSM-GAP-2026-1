@@ -1,0 +1,40 @@
+CENÁRIO: Consulta de estoque consolidado
+
+DADO produto existente em cinco lojas
+QUANDO consultar estoque
+ENTÃO sistema deve retornar quantidade de cada loja
+E estoque total consolidado
+
+CENÁRIO: Produto sem estoque
+
+DADO produto cadastrado
+E quantidade zero em todas as lojas
+QUANDO consultar estoque
+ENTÃO total deve ser igual a zero
+
+CENÁRIO: Produto inexistente
+
+DADO código de produto inválido
+QUANDO consultar estoque
+ENTÃO mensagem "Produto não encontrado" deve ser exibida
+
+CENÁRIO: Estoque distribuído
+
+DADO produto com:
+    Loja 1 = 10
+    Loja 2 = 20
+    Loja 3 = 15
+    Loja 4 = 5
+    Loja 5 = 0
+
+QUANDO consultar estoque
+
+ENTÃO estoque total deve ser 50
+
+CENÁRIO: Alerta de estoque mínimo
+
+DADO produto com estoque abaixo do mínimo em uma loja
+
+QUANDO consultar estoque
+
+ENTÃO sistema deve sinalizar a loja com alerta
