@@ -19,3 +19,7 @@ Cenario: consistencia entre consolidado e exportacao
   Dado que o relatorio consolidado possui total_geral 120
   Quando exportar em CSV e PDF
   Entao ambos os formatos devem refletir o mesmo total consolidado
+
+Rastreabilidade:
+  src/relatorios/validacao_relatorio_exportacao.txt
+  src/relatorios/pseudo_teste_relatorio_exportacao.txt
