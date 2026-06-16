@@ -1,6 +1,6 @@
 # Product Goal — Zé da Mercearia
 
-**Versão:** 1.0 · **Aprovado em:** Sprint Planning 1
+**Versão:** 2.0 · **Aprovado em:** Sprint Planning (Sprint Única)
 
 ---
 
@@ -8,16 +8,16 @@
 
 O cliente **Zé da Mercearia** possui **cinco unidades** e deseja:
 
-1. **Sistema de controle de estoque** — cadastro de produtos, estoque por loja, movimentações e relatórios.
-2. **Chatbot de vendas via WhatsApp** — consulta de produtos, montagem de pedidos e integração em tempo real com o estoque.
+1. **Sistema de controle de estoque** com produtos, lojas, movimentações, alertas e relatórios.
+2. **Chatbot de vendas via WhatsApp** com consulta, pedido, confirmação e baixa automática.
 
-O projeto é acadêmico (GAP 2026/1): implementação em **pseudocódigo**, com **TDD**, **CI**, **mockups** e **arquitetura em camadas** — sem deploy em produção.
+Projeto acadêmico (GAP 2026/1), com pseudocódigo, TDD, CI, mockups e arquitetura em camadas.
 
 ---
 
 ## Product Goal
 
-> Dar ao Zé da Mercearia visibilidade do estoque nas cinco unidades e permitir que clientes consultem produtos e fechem pedidos pelo WhatsApp, com validação de disponibilidade e baixa automática do saldo ao confirmar o pedido.
+> Entregar em uma única sprint um MVP integrado de estoque e chatbot, garantindo visibilidade de saldo por loja, segurança de acesso por perfil e fluxo de pedido com confirmação e atualização de estoque.
 
 ---
 
@@ -25,22 +25,20 @@ O projeto é acadêmico (GAP 2026/1): implementação em **pseudocódigo**, com 
 
 | Métrica | Meta |
 |---------|------|
-| Lojas cadastradas | 5 (nomes genéricos para demo — ver incrementos) |
-| Fluxo WhatsApp | consulta → pedido → confirmação → baixa |
+| Lojas cadastradas | 5 (LOJA-01 a LOJA-05) |
+| Fluxo WhatsApp | consulta -> pedido -> confirmação -> baixa |
 | Qualidade | TDD + CI no repositório |
-| Processo | 3 sprints + Scrumban documentado |
+| Processo | Sprint única + Scrumban documentado |
 
 ---
 
 ## Fora de escopo
 
-Pagamento online, entrega, ERP externo, app nativo.
+Pagamento online, entrega e ERP externo.
 
 ---
 
-## Dados de teste (seed demo)
-
-Nomes de lojas e produtos são **genéricos**, apenas para demonstração em pseudocódigo e Reviews:
+## Seed demo
 
 | Loja | ID |
 |------|-----|
@@ -54,4 +52,4 @@ Produto exemplo: **Produto Teste A** — R$ 10,00 — categoria **Teste**.
 
 ---
 
-*Alinhado ao [Product Backlog](../product_backlog/product_backlog_ze_mercearia.md) e ao [README](../../../README.md).*
+*Alinhado ao [Product Backlog](../product_backlog/product_backlog_ze_mercearia.md) e ao [Sprint Backlog](../sprint_backlog/sprint_backlog_ze_mercearia.md).*

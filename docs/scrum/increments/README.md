@@ -1,16 +1,10 @@
-# Incrementos por sprint
+# Incremento — Sprint Única
 
-Registro do **incremento entregue** (ou em andamento) a cada sprint. Cada arquivo traz:
+Registro do incremento consolidado da sprint única.
 
-- Critérios de aceite objetivos  
-- Roteiro de demo para Sprint Review  
-- Status por entrega  
-- Aceite do PO (preenchido na Review)  
+| Documento | Status |
+|-----------|--------|
+| [incremento_sprint_unica.md](incremento_sprint_unica.md) | 🟡 Em andamento |
 
-| Sprint | Documento | Status |
-|--------|-----------|--------|
-| 1 | [incremento_sprint_01.md](sprint_01/incremento_sprint_01.md) | 🟡 Em andamento |
-| 2 | [incremento_sprint_02.md](sprint_02/incremento_sprint_02.md) | ⚪ Planejado |
-| 3 | [incremento_sprint_03.md](sprint_03/incremento_sprint_03.md) | ⚪ Planejado |
-
-**Responsável pelo conteúdo técnico:** time de dev. **SM:** garante atualização antes/durante Review.
+Responsável conteúdo técnico: time dev.  
+SM garante atualização para Review.
