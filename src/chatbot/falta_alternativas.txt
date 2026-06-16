@@ -1,0 +1,398 @@
+# Pseudocodigo: falta de estoque e sugestao de alternativas
+
+Task: T-S3-C3-03
+Historia: E3-US03
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Descrever o tratamento de falta de estoque e sugestao de alternativas no
+  fluxo de pedido do chatbot WhatsApp.
+
+  Quando o produto solicitado estiver sem estoque ou com estoque insuficiente,
+  o sistema deve informar a falta ao cliente, manter o pedido sem confirmacao,
+  nao baixar estoque, nao notificar gerente e sugerir alternativas disponiveis
+  quando existirem opcoes viaveis.
+
+---
+
+Entrada:
+  pedido
+  resultado_disponibilidade
+  loja_id
+
+Saida:
+  mensagem para o cliente
+  lista de alternativas sugeridas
+  pedido sem confirmacao
+  nenhuma baixa de estoque
+
+Saidas de erro:
+  "pedido nao informado"
+  "resultado de disponibilidade nao informado"
+  "produto solicitado nao encontrado"
+  "resultado disponivel nao exige alternativas"
+
+---
+
+Camada: Dominio
+
+ResultadoAlternativas:
+  sucesso
+  motivo
+  pedido_id
+  produto_solicitado_id
+  produto_solicitado_nome
+  loja_id
+  saldo_atual
+  quantidade_solicitada
+  alternativas_encontradas
+  deve_confirmar_pedido
+  deve_baixar_estoque
+  deve_notificar_gerente
+  mensagem_cliente
+
+Motivos possiveis:
+  ALTERNATIVAS_ENCONTRADAS
+  SEM_ALTERNATIVAS_DISPONIVEIS
+  PRODUTO_SEM_ESTOQUE
+  ESTOQUE_INSUFICIENTE
+  RESULTADO_DISPONIVEL
+  PEDIDO_INVALIDO
+  RESULTADO_INVALIDO
+
+Regras:
+  1. Este fluxo so trata resultado_disponibilidade.disponivel = falso.
+  2. Este fluxo trata principalmente os motivos "SEM_ESTOQUE" e "ESTOQUE_INSUFICIENTE".
+  3. O pedido nao deve ser confirmado neste fluxo.
+  4. Nenhuma baixa de estoque deve ser solicitada neste fluxo.
+  5. Nenhuma movimentacao de estoque deve ser registrada neste fluxo.
+  6. Nenhuma notificacao ao gerente deve ser enviada neste fluxo.
+  7. Alternativas devem estar ativas.
+  8. Alternativas devem ter saldo maior que zero na loja do pedido.
+  9. Alternativas devem pertencer a mesma categoria ou possuir nome similar.
+  10. O produto solicitado nao pode aparecer como alternativa.
+  11. Produtos da mesma categoria devem ter prioridade.
+  12. Quando nao houver alternativas, orientar o cliente a informar outro produto.
+  13. O limite sugerido e de no maximo 3 alternativas na resposta ao cliente.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal tratar_falta_e_sugerir_alternativas(pedido, resultado_disponibilidade, loja_id):
+  1. Validar pedido:
+     Se pedido nao existir:
+       Retornar ResultadoAlternativas com:
+         sucesso = falso
+         motivo = "PEDIDO_INVALIDO"
+         pedido_id = vazio
+         produto_solicitado_id = vazio
+         produto_solicitado_nome = vazio
+         loja_id = loja_id
+         saldo_atual = 0
+         quantidade_solicitada = vazio
+         alternativas_encontradas = lista vazia
+         deve_confirmar_pedido = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         mensagem_cliente = "Nao encontrei um pedido em andamento."
+
+  2. Validar resultado de disponibilidade:
+     Se resultado_disponibilidade nao existir:
+       Retornar ResultadoAlternativas com:
+         sucesso = falso
+         motivo = "RESULTADO_INVALIDO"
+         pedido_id = pedido.id
+         produto_solicitado_id = pedido.produto_id
+         produto_solicitado_nome = pedido.produto_nome
+         loja_id = loja_id
+         saldo_atual = 0
+         quantidade_solicitada = pedido.quantidade
+         alternativas_encontradas = lista vazia
+         deve_confirmar_pedido = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         mensagem_cliente = "Nao foi possivel validar a disponibilidade do produto."
+
+  3. Verificar se ha disponibilidade:
+     Se resultado_disponibilidade.disponivel for verdadeiro:
+       Retornar ResultadoAlternativas com:
+         sucesso = verdadeiro
+         motivo = "RESULTADO_DISPONIVEL"
+         pedido_id = pedido.id
+         produto_solicitado_id = pedido.produto_id
+         produto_solicitado_nome = pedido.produto_nome
+         loja_id = loja_id
+         saldo_atual = resultado_disponibilidade.saldo_atual
+         quantidade_solicitada = pedido.quantidade
+         alternativas_encontradas = lista vazia
+         deve_confirmar_pedido = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         mensagem_cliente = "O produto esta disponivel. Nao ha necessidade de sugerir alternativas."
+
+  4. Buscar produto solicitado:
+     produto_solicitado = repositorio_produtos.buscar_por_id(pedido.produto_id).
+
+     Se produto_solicitado nao existir:
+       produto_solicitado = criar_referencia_do_produto_a_partir_do_pedido(pedido).
+
+  5. Buscar alternativas disponiveis:
+     alternativas = buscar_alternativas_disponiveis(produto_solicitado, loja_id).
+
+  6. Filtrar alternativas ativas:
+     alternativas = filtrar_produtos_ativos(alternativas).
+
+  7. Filtrar alternativas com saldo:
+     alternativas = filtrar_produtos_com_saldo(alternativas, loja_id).
+
+  8. Remover produto solicitado:
+     alternativas = remover_produto_solicitado(alternativas, produto_solicitado).
+
+  9. Ordenar alternativas:
+     alternativas = ordenar_alternativas(alternativas).
+
+  10. Limitar sugestoes:
+      alternativas = limitar_quantidade_alternativas(alternativas, 3).
+
+  11. Montar mensagem conforme motivo:
+      Se resultado_disponibilidade.motivo for "SEM_ESTOQUE":
+        mensagem = montar_mensagem_sem_estoque(produto_solicitado, alternativas).
+
+      Se resultado_disponibilidade.motivo for "ESTOQUE_INSUFICIENTE":
+        mensagem = montar_mensagem_estoque_insuficiente(
+          produto_solicitado,
+          resultado_disponibilidade.saldo_atual,
+          resultado_disponibilidade.quantidade_solicitada,
+          alternativas
+        ).
+
+      Se resultado_disponibilidade.motivo for outro motivo:
+        mensagem = montar_mensagem_sem_alternativas(produto_solicitado).
+
+  12. Definir motivo do resultado:
+      Se alternativas nao estiver vazia:
+        motivo_resultado = "ALTERNATIVAS_ENCONTRADAS".
+
+      Se alternativas estiver vazia:
+        motivo_resultado = "SEM_ALTERNATIVAS_DISPONIVEIS".
+
+  13. Garantir que nao ha efeitos de pedido confirmado:
+      pedido.status nao deve ser alterado para "CONFIRMADO".
+      Nao chamar baixa_automatica_transacional.
+      Nao registrar movimentacao de estoque.
+      Nao chamar notificacao_whatsapp_gerente.
+
+  14. Retornar ResultadoAlternativas com:
+      sucesso = verdadeiro
+      motivo = motivo_resultado
+      pedido_id = pedido.id
+      produto_solicitado_id = produto_solicitado.id
+      produto_solicitado_nome = produto_solicitado.nome
+      loja_id = loja_id
+      saldo_atual = resultado_disponibilidade.saldo_atual
+      quantidade_solicitada = resultado_disponibilidade.quantidade_solicitada
+      alternativas_encontradas = alternativas
+      deve_confirmar_pedido = falso
+      deve_baixar_estoque = falso
+      deve_notificar_gerente = falso
+      mensagem_cliente = mensagem
+
+---
+
+Fluxo auxiliar buscar_alternativas_disponiveis(produto_solicitado, loja_id):
+  1. Buscar alternativas por categoria:
+     alternativas_categoria = buscar_alternativas_por_categoria(produto_solicitado, loja_id).
+
+  2. Se alternativas_categoria nao estiver vazia:
+     Retornar alternativas_categoria.
+
+  3. Se nao houver alternativas por categoria:
+     alternativas_similares = buscar_alternativas_por_similaridade(produto_solicitado, loja_id).
+
+  4. Retornar alternativas_similares.
+
+Fluxo auxiliar buscar_alternativas_por_categoria(produto_solicitado, loja_id):
+  1. Se produto_solicitado.categoria estiver vazia:
+     Retornar lista vazia.
+
+  2. Buscar produtos da mesma categoria:
+     produtos = repositorio_produtos.listar_ativos_por_categoria(produto_solicitado.categoria).
+
+  3. Para cada produto encontrado:
+     Marcar criterio_prioridade = "MESMA_CATEGORIA".
+     Consultar saldo na loja usando repositorio_estoque.
+
+  4. Retornar produtos encontrados com seus saldos.
+
+Fluxo auxiliar buscar_alternativas_por_similaridade(produto_solicitado, loja_id):
+  1. Obter termo de busca:
+     termo = produto_solicitado.nome.
+
+  2. Buscar produtos por nome aproximado ou descricao relacionada:
+     produtos = repositorio_produtos.buscar_por_nome_ou_descricao_similar(termo).
+
+  3. Para cada produto encontrado:
+     Marcar criterio_prioridade = "SIMILARIDADE".
+     Calcular pontuacao de similaridade com produto_solicitado.nome.
+     Consultar saldo na loja usando repositorio_estoque.
+
+  4. Retornar produtos encontrados com seus saldos e pontuacao.
+
+Fluxo auxiliar filtrar_produtos_ativos(produtos):
+  1. Criar lista_filtrada vazia.
+
+  2. Para cada produto em produtos:
+     Se produto.status for "ATIVO":
+       Adicionar produto em lista_filtrada.
+
+  3. Retornar lista_filtrada.
+
+Fluxo auxiliar filtrar_produtos_com_saldo(produtos, loja_id):
+  1. Criar lista_disponivel vazia.
+
+  2. Para cada produto em produtos:
+     estoque = repositorio_estoque.buscar_por_produto_e_loja(produto.id, loja_id).
+
+     Se estoque existir e estoque.quantidade_atual > 0:
+       Associar saldo_disponivel = estoque.quantidade_atual.
+       Adicionar produto em lista_disponivel.
+
+  3. Retornar lista_disponivel.
+
+Fluxo auxiliar remover_produto_solicitado(produtos, produto_solicitado):
+  1. Criar lista_sem_produto_solicitado vazia.
+
+  2. Para cada produto em produtos:
+     Se produto.id for diferente de produto_solicitado.id:
+       Adicionar produto em lista_sem_produto_solicitado.
+
+  3. Retornar lista_sem_produto_solicitado.
+
+Fluxo auxiliar ordenar_alternativas(produtos):
+  1. Ordenar produtos nesta prioridade:
+     Primeiro: produtos com criterio_prioridade = "MESMA_CATEGORIA".
+     Segundo: produtos com maior pontuacao de similaridade.
+     Terceiro: produtos com maior saldo_disponivel.
+     Quarto: produtos com menor preco.
+     Quinto: produtos cadastrados ha mais tempo.
+
+  2. Retornar produtos ordenados.
+
+Fluxo auxiliar limitar_quantidade_alternativas(produtos, limite):
+  1. Se limite estiver vazio:
+     limite = 3.
+
+  2. Retornar no maximo os primeiros limite produtos.
+
+---
+
+Fluxo auxiliar montar_mensagem_sem_estoque(produto_solicitado, alternativas):
+  1. Se alternativas estiver vazia:
+     Retornar montar_mensagem_sem_alternativas(produto_solicitado).
+
+  2. Iniciar mensagem:
+     texto = "No momento, " + produto_solicitado.nome + " esta sem estoque."
+     texto = texto + "\nTemos estas alternativas disponiveis:"
+
+  3. Adicionar alternativas:
+     Para cada alternativa numerada:
+       texto = texto + "\n" + numero + ". " + alternativa.nome +
+               " - R$ " + alternativa.preco +
+               " - " + alternativa.saldo_disponivel + " unidades"
+
+  4. Adicionar orientacao:
+     texto = texto + "\nResponda com o nome da alternativa desejada ou informe outro produto."
+
+  5. Retornar texto.
+
+Fluxo auxiliar montar_mensagem_estoque_insuficiente(produto_solicitado, saldo_atual, quantidade_solicitada, alternativas):
+  1. Se alternativas estiver vazia:
+     Retornar montar_mensagem_sem_alternativas(produto_solicitado).
+
+  2. Iniciar mensagem:
+     texto = "Temos apenas " + saldo_atual + " unidades de " + produto_solicitado.nome +
+             " disponiveis, mas voce solicitou " + quantidade_solicitada + "."
+     texto = texto + "\nVoce pode reduzir a quantidade ou escolher uma alternativa:"
+
+  3. Adicionar alternativas:
+     Para cada alternativa numerada:
+       texto = texto + "\n" + numero + ". " + alternativa.nome +
+               " - R$ " + alternativa.preco +
+               " - " + alternativa.saldo_disponivel + " unidades"
+
+  4. Retornar texto.
+
+Fluxo auxiliar montar_mensagem_sem_alternativas(produto_solicitado):
+  1. Montar mensagem:
+     texto = "No momento, " + produto_solicitado.nome + " nao esta disponivel na quantidade solicitada."
+     texto = texto + "\nNao encontramos alternativas disponiveis agora."
+     texto = texto + "\nVoce pode informar outro produto para continuar o pedido."
+
+  2. Retornar texto.
+
+---
+
+Garantias do fluxo:
+  1. O pedido nao deve ser confirmado.
+  2. O pedido nao deve ser cancelado.
+  3. Nenhuma baixa de estoque deve ocorrer.
+  4. Nenhuma transacao de baixa deve ser aberta.
+  5. Nenhuma movimentacao de estoque deve ser registrada.
+  6. Nenhuma notificacao ao gerente deve ser enviada.
+  7. Este fluxo apenas monta resposta e lista de alternativas.
+
+---
+
+Camada: Infraestrutura
+
+Integracoes usadas:
+  repositorio_produtos:
+    buscar_por_id(produto_id)
+    listar_ativos_por_categoria(categoria)
+    buscar_por_nome_ou_descricao_similar(termo)
+
+  repositorio_estoque:
+    buscar_por_produto_e_loja(produto_id, loja_id)
+
+Integracoes conceituais:
+  validacao_disponibilidade_pedido:
+    Deve chamar este fluxo quando disponivel = falso e deve_sugerir_alternativas = verdadeiro.
+
+  maquina_estados_pedido:
+    Deve usar a mensagem retornada para orientar o cliente a escolher alternativa ou outro produto.
+
+  baixa_automatica_transacional:
+    Nao deve ser chamada por este fluxo.
+
+  notificacao_whatsapp_gerente:
+    Nao deve ser chamada por este fluxo.
+
+---
+
+Exemplos de mensagem:
+
+Produto sem estoque com alternativas:
+  "No momento, Refrigerante Cola esta sem estoque."
+  "Temos estas alternativas disponiveis:"
+  "1. Refrigerante Guarana - R$ 7,50 - 8 unidades"
+  "2. Refrigerante Laranja - R$ 7,20 - 5 unidades"
+  "Responda com o nome da alternativa desejada ou informe outro produto."
+
+Estoque insuficiente com alternativas:
+  "Temos apenas 2 unidades de Arroz Tipo 1 disponiveis, mas voce solicitou 5."
+  "Voce pode reduzir a quantidade ou escolher uma alternativa:"
+  "1. Arroz Integral - R$ 8,90 - 6 unidades"
+  "2. Arroz Parboilizado - R$ 7,80 - 4 unidades"
+
+Sem alternativas:
+  "No momento, Arroz Tipo 1 nao esta disponivel na quantidade solicitada."
+  "Nao encontramos alternativas disponiveis agora."
+  "Voce pode informar outro produto para continuar o pedido."
+
+---
+
+Rastreabilidade:
+  src/chatbot/validacao_disponibilidade_pedido.txt
+  tests/chatbot/estoque_insuficiente_test.txt
