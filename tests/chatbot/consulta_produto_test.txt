@@ -1,0 +1,41 @@
+# Teste pseudocodigo: consulta de produto pelo chatbot WhatsApp
+
+Task: T-S3-C1-03
+Historia: E1-US01, E1-US02
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: responder produto encontrado com preco e disponibilidade
+  Dado que o produto "PROD-001" existe com nome "Produto Teste A"
+  E o produto "PROD-001" esta ATIVO e custa R$ 10,00
+  E o produto "PROD-001" possui saldo 15 na "LOJA-01"
+  Quando o cliente enviar "tem Produto Teste A?"
+  Entao o chatbot deve responder com o nome "Produto Teste A"
+  E deve informar o preco "R$ 10,00"
+  E deve informar disponibilidade de 15 unidade(s)
+
+Cenario: responder produto nao encontrado
+  Dado que nao existe produto ativo com nome aproximado "Produto Inexistente"
+  Quando o cliente enviar "tem Produto Inexistente?"
+  Entao o chatbot deve responder "Nao encontrei esse produto. Pode tentar outro nome?"
+  E nao deve consultar baixa de estoque
+
+Cenario: responder produto sem estoque
+  Dado que o produto "PROD-002" existe com nome "Produto Zerado"
+  E o produto "PROD-002" esta ATIVO
+  E o produto "PROD-002" possui saldo 0 na "LOJA-01"
+  Quando o cliente enviar "tem Produto Zerado?"
+  Entao o chatbot deve responder que "Produto Zerado" esta sem estoque
+  E nao deve oferecer confirmacao de pedido
+
+Cenario: listar produtos disponiveis por categoria
+  Dado que a categoria "Bebidas" possui 6 produtos ativos
+  E apenas 5 produtos possuem saldo maior que zero na "LOJA-01"
+  Quando o cliente enviar "bebidas"
+  Entao o chatbot deve listar ate 5 produtos disponiveis da categoria "Bebidas"
+  E cada item deve conter nome, preco e quantidade disponivel
+
+Cenario: responder categoria sem produtos disponiveis
+  Dado que a categoria "Limpeza" possui produtos ativos
+  E todos os produtos da categoria "Limpeza" possuem saldo 0 na "LOJA-01"
+  Quando o cliente enviar "limpeza"
+  Entao o chatbot deve responder "Nao ha produtos disponiveis nessa categoria no momento."
