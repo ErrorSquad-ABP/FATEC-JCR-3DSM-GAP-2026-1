@@ -1,0 +1,224 @@
+# Pseudocodigo: consulta de produto e listagem por categoria
+
+Task: T-S3-C1-02
+Historia: E1-US01, E1-US02
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Permitir que o cliente consulte um produto pelo WhatsApp e receba nome,
+  preco e disponibilidade, ou liste produtos disponiveis por categoria.
+
+---
+
+Entrada:
+  telefone_cliente
+  texto_mensagem
+  loja_id (padrao: "LOJA-01" na demonstracao)
+
+Saida de sucesso:
+  Mensagem de resposta com produto encontrado, preco e saldo disponivel.
+  Ou lista com ate 5 produtos disponiveis da categoria solicitada.
+
+Saidas de erro:
+  "texto da mensagem e obrigatorio"
+  "produto nao encontrado"
+  "produto sem estoque"
+  "categoria nao encontrada"
+  "nenhum produto disponivel na categoria"
+
+---
+
+Camada: Apresentacao
+
+Fluxo mensagem_consulta_whatsapp:
+  1. Cliente envia mensagem perguntando por um produto ou categoria.
+     Exemplos:
+       "tem arroz?"
+       "quanto custa Produto Teste A?"
+       "bebidas"
+
+  2. Webhook WhatsApp identifica a intencao da mensagem.
+
+  3. Se a intencao for "CONSULTAR_PRODUTO":
+       Chamar caso de uso consultar_produto_chat(texto_mensagem, loja_id).
+
+  4. Se a intencao for "LISTAR_CATEGORIA":
+       Chamar caso de uso listar_produtos_categoria_chat(texto_mensagem, loja_id).
+
+  5. Enviar a resposta gerada pelo gateway WhatsApp simulado.
+
+---
+
+Camada: Aplicacao
+
+Caso de uso consultar_produto_chat(texto_mensagem, loja_id):
+  1. Validar entrada:
+     Se texto_mensagem estiver vazio:
+       Retornar erro "texto da mensagem e obrigatorio".
+
+  2. Extrair termo de busca:
+     termo_busca = extrair_nome_produto(texto_mensagem)
+
+  3. Buscar produto ativo:
+     produto = repositorio_produtos.buscar_ativo_por_nome_aproximado(termo_busca)
+     Se produto nao existir:
+       Retornar resposta "Nao encontrei esse produto. Pode tentar outro nome?"
+
+  4. Consultar estoque em tempo real:
+     estoque = repositorio_estoque.buscar_por_produto_e_loja(produto.id, loja_id)
+
+  5. Validar disponibilidade:
+     Se estoque nao existir ou estoque.quantidade_atual <= 0:
+       Retornar resposta "No momento, " + produto.nome + " esta sem estoque."
+
+  6. Montar resposta:
+     resposta = formatar_resposta_produto(produto, estoque)
+
+  7. Retornar resposta.
+
+Caso de uso listar_produtos_categoria_chat(texto_mensagem, loja_id):
+  1. Validar entrada:
+     Se texto_mensagem estiver vazio:
+       Retornar erro "texto da mensagem e obrigatorio".
+
+  2. Extrair categoria:
+     categoria = extrair_categoria(texto_mensagem)
+
+  3. Buscar produtos ativos da categoria:
+     produtos = repositorio_produtos.listar_ativos_por_categoria(categoria)
+     Se produtos estiver vazio:
+       Retornar resposta "Nao encontrei produtos nessa categoria."
+
+  4. Para cada produto encontrado:
+       estoque = repositorio_estoque.buscar_por_produto_e_loja(produto.id, loja_id)
+       Se estoque existir e estoque.quantidade_atual > 0:
+         Adicionar produto na lista_disponiveis.
+
+  5. Se lista_disponiveis estiver vazia:
+       Retornar resposta "Nao ha produtos disponiveis nessa categoria no momento."
+
+  6. Limitar resultado:
+     produtos_resposta = primeiros 5 itens de lista_disponiveis
+
+  7. Montar resposta:
+     resposta = formatar_resposta_categoria(categoria, produtos_resposta)
+
+  8. Retornar resposta.
+
+Servico extrair_nome_produto(texto_mensagem):
+  1. Normalizar texto:
+     texto = remover_acentos(converter_para_minusculo(texto_mensagem))
+
+  2. Remover termos de conversa:
+     Remover "tem", "voce tem", "quanto custa", "preco de", "produto".
+
+  3. Remover pontuacao.
+
+  4. Retornar texto limpo.
+
+Servico extrair_categoria(texto_mensagem):
+  1. Normalizar texto:
+     texto = remover_acentos(converter_para_minusculo(texto_mensagem))
+
+  2. Se texto contiver uma categoria conhecida:
+       Retornar categoria correspondente.
+
+  3. Caso contrario:
+       Retornar texto limpo como categoria pesquisada.
+
+Servico formatar_resposta_produto(produto, estoque):
+  Retornar:
+    produto.nome + " custa R$ " + produto.preco +
+    " e temos " + estoque.quantidade_atual + " unidade(s) disponiveis."
+
+Servico formatar_resposta_categoria(categoria, produtos_resposta):
+  1. Iniciar mensagem:
+     texto = "Produtos disponiveis em " + categoria + ":"
+
+  2. Para cada item em produtos_resposta:
+       Adicionar linha:
+         "- " + item.produto.nome + " - R$ " + item.produto.preco +
+         " (" + item.estoque.quantidade_atual + " un)"
+
+  3. Retornar texto.
+
+---
+
+Camada: Dominio
+
+Regras de Negocio:
+  1. Apenas produtos com status "ATIVO" devem aparecer no chatbot.
+  2. Produto sem saldo deve ser informado como indisponivel.
+  3. A consulta deve considerar o estoque da loja informada.
+  4. Na demonstracao da Sprint 3, a loja padrao e "LOJA-01".
+  5. A listagem por categoria deve retornar no maximo 5 produtos para manter
+     a resposta adequada ao WhatsApp.
+
+Modelo de resposta de produto:
+  ProdutoConsultado {
+    produto_id: texto
+    nome: texto
+    categoria: texto
+    preco: decimal
+    loja_id: texto
+    quantidade_disponivel: inteiro
+  }
+
+Modelo de item da categoria:
+  ProdutoCategoriaDisponivel {
+    produto: Produto
+    estoque: Estoque
+  }
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_produtos
+
+Funcao buscar_ativo_por_nome_aproximado(termo_busca):
+  Para cada produto em lista_produtos:
+    Se produto.status for "ATIVO" e produto.nome contiver termo_busca:
+      Retornar produto
+  Retornar vazio
+
+Funcao listar_ativos_por_categoria(categoria):
+  produtos_categoria = lista vazia
+
+  Para cada produto em lista_produtos:
+    Se produto.status for "ATIVO" e produto.categoria for igual a categoria:
+      Adicionar produto em produtos_categoria
+
+  Retornar produtos_categoria
+
+Repositorio simulado: repositorio_estoque
+
+Funcao buscar_por_produto_e_loja(produto_id, loja_id):
+  Para cada estoque em lista_estoque:
+    Se estoque.produto_id for igual a produto_id
+    E estoque.loja_id for igual a loja_id:
+      Retornar estoque
+  Retornar vazio
+
+Seed demo para Sprint 3:
+  Produto {
+    id: "PROD-001",
+    nome: "Produto Teste A",
+    categoria: "Teste",
+    preco: 10.00,
+    status: "ATIVO"
+  }
+
+  Estoque {
+    id: "EST-001",
+    produto_id: "PROD-001",
+    loja_id: "LOJA-01",
+    quantidade_atual: 15,
+    atualizado_em: "2026-06-10T00:00:00"
+  }
+
+---
+
+Rastreabilidade dos testes:
+  tests/chatbot/consulta_produto_categoria_test.txt (previsto em T-S3-C1-03)
