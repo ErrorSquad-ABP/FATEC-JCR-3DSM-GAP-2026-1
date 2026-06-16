@@ -1,0 +1,60 @@
+# Teste pseudocodigo: notificacao WhatsApp ao gerente
+
+Task: T-S3-C4-03
+Historia: E4-US01, E4-US02
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: disparar notificacao apenas apos confirmacao do pedido
+  Dado que o pedido "PED-001" existe com status "CONFIRMADO"
+  E a baixa de estoque do pedido "PED-001" foi concluida com sucesso
+  E existe gerente ativo vinculado a "LOJA-01" com telefone WhatsApp configurado
+  Quando o sistema processar a confirmacao do pedido "PED-001"
+  Entao deve enviar uma notificacao WhatsApp ao gerente da "LOJA-01"
+  E deve registrar a notificacao com status "ENVIADA"
+
+Cenario: nao disparar notificacao para pedido ainda nao confirmado
+  Dado que o pedido "PED-002" existe com status "EM_RESUMO"
+  E existe gerente ativo vinculado a "LOJA-01"
+  Quando o sistema tentar notificar o gerente
+  Entao deve retornar erro "pedido nao confirmado"
+  E nao deve chamar o gateway WhatsApp
+  E nao deve registrar notificacao com status "ENVIADA"
+
+Cenario: nao disparar notificacao quando pedido for cancelado
+  Dado que o pedido "PED-003" existe com status "CANCELADO"
+  Quando o cliente cancelar o pedido pelo chat
+  Entao o sistema nao deve enviar notificacao WhatsApp ao gerente
+  E deve retornar erro "pedido nao confirmado"
+
+Cenario: notificar gerente com resumo do pedido e dados do cliente
+  Dado que o pedido "PED-001" esta confirmado na "LOJA-01"
+  E o cliente do pedido se chama "Cliente Teste"
+  E o telefone do cliente e "(11) 99999-0000"
+  E o pedido possui 2 unidade(s) de "Produto Teste A"
+  Quando a notificacao for enviada ao gerente
+  Entao a mensagem deve conter "Pedido confirmado: PED-001"
+  E deve conter "Cliente: Cliente Teste"
+  E deve conter "Telefone: (11) 99999-0000"
+  E deve conter "2x Produto Teste A"
+
+Cenario: rejeitar notificacao quando gerente da loja nao existe
+  Dado que o pedido "PED-004" esta confirmado na "LOJA-99"
+  E nao existe gerente ativo vinculado a "LOJA-99"
+  Quando o sistema tentar notificar o gerente
+  Entao deve retornar erro "gerente da loja nao encontrado"
+  E nao deve chamar o gateway WhatsApp
+
+Cenario: rejeitar notificacao quando telefone do gerente nao esta configurado
+  Dado que o pedido "PED-005" esta confirmado na "LOJA-01"
+  E o gerente da "LOJA-01" nao possui telefone WhatsApp configurado
+  Quando o sistema tentar notificar o gerente
+  Entao deve retornar erro "telefone do gerente nao configurado"
+  E nao deve chamar o gateway WhatsApp
+
+Cenario: registrar falha quando gateway WhatsApp nao enviar mensagem
+  Dado que o pedido "PED-006" esta confirmado na "LOJA-01"
+  E existe gerente ativo com telefone WhatsApp configurado
+  E o gateway WhatsApp retorna falha de envio
+  Quando o sistema tentar enviar a notificacao
+  Entao deve retornar erro "falha ao enviar notificacao"
+  E deve registrar a notificacao com status "ERRO_ENVIO"
