@@ -1,0 +1,124 @@
+# Teste pseudocodigo: fluxo de pedido pelo WhatsApp
+
+Task: T-S3-C2-03
+Historia: E2-US01, E2-US02, E2-US03
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: iniciar montagem de pedido com produto e quantidade
+  Dado:
+    que a sessao WhatsApp do cliente esta ativa na "LOJA-01"
+    E nao existe pedido em andamento para a sessao
+    E o produto "Arroz" existe e esta disponivel para venda
+  Quando:
+    o cliente enviar "quero comprar 2 unidades de arroz"
+  Entao:
+    o chatbot deve identificar a intencao de montar pedido
+    E deve extrair o produto "Arroz"
+    E deve extrair a quantidade 2
+    E deve criar um pedido em andamento
+    E sessao.estado_atual deve ser "RESUMO_PEDIDO" ou "AGUARDANDO_CONFIRMACAO"
+    E pedido.status deve ser "AGUARDANDO_CONFIRMACAO"
+    E pedido.produto_nome deve ser "Arroz"
+    E pedido.quantidade deve ser 2
+    E nenhuma baixa de estoque deve ocorrer antes da confirmacao
+    E nenhuma notificacao ao gerente deve ser enviada antes da confirmacao
+
+Cenario: solicitar quantidade quando cliente informar apenas o produto
+  Dado:
+    que a sessao WhatsApp do cliente esta ativa na "LOJA-01"
+    E nao existe pedido em andamento para a sessao
+    E o produto "Arroz" existe e esta disponivel para venda
+  Quando:
+    o cliente enviar "quero comprar arroz"
+  Entao:
+    o chatbot deve identificar a intencao de montar pedido
+    E deve extrair o produto "Arroz"
+    E deve perceber que a quantidade nao foi informada
+    E sessao.estado_atual deve ser "AGUARDANDO_QUANTIDADE"
+    E a resposta deve ser "Quantas unidades de Arroz voce deseja?"
+    E o pedido ainda nao deve ser confirmado
+    E nenhuma baixa de estoque deve ocorrer
+    E nenhuma notificacao ao gerente deve ser enviada
+
+Cenario: gerar resumo antes da confirmacao do pedido
+  Dado:
+    que a sessao WhatsApp do cliente esta em "AGUARDANDO_QUANTIDADE"
+    E o produto "Arroz" ja foi identificado para o pedido
+    E o produto "Arroz" custa R$ 10,00
+    E o cliente ainda nao confirmou nem cancelou o pedido
+  Quando:
+    o cliente informar quantidade 2
+  Entao:
+    o sistema deve gerar um resumo do pedido antes da confirmacao
+    E o resumo deve conter o produto "Arroz"
+    E o resumo deve conter a quantidade 2
+    E o resumo deve conter o valor unitario "R$ 10,00"
+    E o resumo deve conter o valor total "R$ 20,00"
+    E o resumo deve orientar o cliente a responder "CONFIRMAR" ou "CANCELAR"
+    E pedido.status deve ser "AGUARDANDO_CONFIRMACAO"
+    E sessao.estado_atual deve ser "AGUARDANDO_CONFIRMACAO"
+    E o estoque ainda nao deve ser baixado
+    E o gerente ainda nao deve ser notificado
+
+Cenario: confirmar pedido aguardando confirmacao no happy path
+  Dado:
+    que a sessao WhatsApp do cliente esta em "AGUARDANDO_CONFIRMACAO"
+    E existe o pedido "PED-001" com status "AGUARDANDO_CONFIRMACAO"
+    E o pedido "PED-001" possui 2 unidade(s) de "Arroz"
+    E o cliente recebeu o resumo do pedido
+  Quando:
+    o cliente enviar "CONFIRMAR"
+  Entao:
+    o sistema deve aceitar a confirmacao do pedido
+    E pedido.status deve ser "CONFIRMADO"
+    E sessao.estado_atual deve ser "CONFIRMADO"
+    E a baixa de estoque deve ser solicitada para a task "T-S3-C3-02"
+    E a notificacao ao gerente deve ocorrer somente apos a confirmacao e a baixa concluida
+    E esta task deve apenas declarar o comportamento esperado da baixa transacional
+
+Cenario: cancelar pedido sem baixa de estoque
+  Dado:
+    que a sessao WhatsApp do cliente esta em "AGUARDANDO_CONFIRMACAO"
+    E existe o pedido "PED-002" com status "AGUARDANDO_CONFIRMACAO"
+    E o pedido "PED-002" possui 2 unidade(s) de "Arroz"
+    E o saldo atual de "Arroz" na "LOJA-01" e 15
+  Quando:
+    o cliente enviar "CANCELAR"
+  Entao:
+    o sistema deve cancelar o pedido
+    E pedido.status deve ser "CANCELADO"
+    E sessao.estado_atual deve ser "CANCELADO"
+    E o saldo de "Arroz" na "LOJA-01" deve permanecer 15
+    E nenhuma movimentacao de estoque deve ser registrada
+    E nenhuma notificacao ao gerente deve ser enviada
+
+Cenario: impedir confirmacao de pedido ja cancelado
+  Dado:
+    que a sessao WhatsApp do cliente esta em "CANCELADO"
+    E existe o pedido "PED-003" com status "CANCELADO"
+    E o pedido "PED-003" possui 2 unidade(s) de "Arroz"
+    E o saldo atual de "Arroz" na "LOJA-01" e 15
+  Quando:
+    o cliente enviar "CONFIRMAR"
+  Entao:
+    o sistema deve rejeitar a confirmacao
+    E pedido.status deve permanecer "CANCELADO"
+    E o saldo de "Arroz" na "LOJA-01" deve permanecer 15
+    E nenhuma baixa de estoque deve ocorrer
+    E nenhuma notificacao ao gerente deve ser enviada
+    E a resposta deve informar que o pedido ja foi cancelado
+
+Cenario: impedir confirmacao duplicada de pedido ja confirmado
+  Dado:
+    que a sessao WhatsApp do cliente esta em "CONFIRMADO"
+    E existe o pedido "PED-004" com status "CONFIRMADO"
+    E a baixa de estoque do pedido "PED-004" ja foi executada uma vez
+    E a notificacao ao gerente do pedido "PED-004" ja foi enviada uma vez
+  Quando:
+    o cliente enviar novamente "CONFIRMAR"
+  Entao:
+    o sistema deve ignorar a confirmacao duplicada
+    E pedido.status deve permanecer "CONFIRMADO"
+    E a baixa de estoque nao deve ser executada novamente
+    E a notificacao ao gerente nao deve ser duplicada
+    E a resposta deve informar que o pedido ja foi confirmado
