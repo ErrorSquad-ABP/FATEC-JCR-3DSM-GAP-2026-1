@@ -1,6 +1,6 @@
 # Zé da Mercearia — Scrumban
 
-Quadro oficial Scrumban do GAP 2026/1 com **sprint única**.
+Quadro oficial Scrumban do GAP 2026/1 — **sprint única encerrada** (T-S3-E2E-02).
 
 ## Colunas
 Backlog -> Ready -> In Progress -> Review -> Testing -> Done

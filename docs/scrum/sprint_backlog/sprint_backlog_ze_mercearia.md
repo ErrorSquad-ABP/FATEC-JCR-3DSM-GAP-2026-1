@@ -14,12 +14,12 @@ Planejamento consolidado em **uma única sprint** com fluxo Scrumban.
 
 ## Definition of Done (global)
 
-- [ ] Pseudocódigo revisado por pelo menos um membro do time
-- [ ] Testes unitários escritos antes ou junto da implementação (TDD)
-- [ ] Critérios de aceite da user story validados
-- [ ] Pipeline CI passando (lint + testes)
-- [ ] Mockup ou fluxo documentado quando houver interface
-- [ ] Item movido para **Done** no GitHub Projects
+- [x] Pseudocódigo revisado por pelo menos um membro do time
+- [x] Testes unitários escritos antes ou junto da implementação (TDD)
+- [x] Critérios de aceite da user story validados
+- [x] Pipeline CI passando (lint + testes)
+- [x] Mockup ou fluxo documentado quando houver interface
+- [x] Item movido para **Done** no GitHub Projects
 
 ---
 

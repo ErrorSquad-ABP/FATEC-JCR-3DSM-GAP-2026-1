@@ -1,24 +1,47 @@
-# Sprint Review — Sprint Única
+# Sprint Review — Sprint Única (encerrada)
 
 **Facilitador:** João Victor (SM)  
-**Stakeholder/PO:** Arthur
+**Stakeholder/PO:** Arthur  
+**Data:** 16/06/2026  
+**Resultado:** Incremento **aceito**
 
 ---
 
-## Roteiro sugerido
+## Roteiro realizado
 
-1. Revisar Sprint Goal e status do board.
-2. Demonstrar fundação e arquitetura.
-3. Demonstrar fluxo de estoque ponta a ponta.
-4. Demonstrar relatório/exportação.
-5. Demonstrar fluxo chatbot com baixa de estoque.
-6. Validar critérios de aceite e registrar feedback.
+1. ✅ Revisão do Sprint Goal e board — escopo MVP concluído.
+2. ✅ Demo fundação: arquitetura, entidades, CI e mockups.
+3. ✅ Demo estoque: produtos, lojas, movimentações e alertas.
+4. ✅ Demo relatórios: consolidado e exportação CSV/PDF simulada.
+5. ✅ Demo chatbot: consulta, pedido, confirmação, baixa e notificação.
+6. ✅ Validação dos critérios de aceite — ver [incremento](../increments/incremento_sprint_unica.md).
 
 ---
 
 ## Checklist pré-review
 
-- [ ] CI verde na `main`
-- [ ] Documentação Scrum consolidada em sprint única
-- [ ] Rastreabilidade task/teste/pseudocódigo válida
-- [ ] Cards relevantes em `Done` ou com impedimento registrado
+- [x] CI verde na `main`
+- [x] Documentação Scrum consolidada em sprint única
+- [x] Rastreabilidade task/teste/pseudocódigo válida
+- [x] Cards relevantes em `Done` ou com impedimento registrado
+
+---
+
+## Feedback do PO
+
+| Tema | Feedback |
+|------|----------|
+| Escopo MVP | Atendido — estoque + chatbot integrados |
+| Qualidade | TDD e CI demonstram disciplina do time |
+| Documentação | Artefatos Scrum completos para apresentação acadêmica |
+| UX | Mockups cobrem telas principais do estoque |
+
+---
+
+## Pendências
+
+Nenhuma pendência bloqueante para encerramento do GAP.
+
+---
+
+*Encerramento registrado em T-S3-E2E-02 (#42).*
