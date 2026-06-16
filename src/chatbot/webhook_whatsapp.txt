@@ -1,0 +1,270 @@
+# Pseudocodigo: webhook WhatsApp
+
+Task: T-S3-C1-01
+Historia: E1-US01, E1-US02, E2-US01
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Receber mensagens simuladas do WhatsApp, identificar o cliente pelo telefone,
+  encaminhar o texto para o fluxo do chatbot e enviar a resposta gerada.
+
+---
+
+Entrada:
+  payload_whatsapp {
+    mensagem_id: texto
+    telefone_cliente: texto
+    nome_cliente: texto
+    texto: texto
+    recebido_em: data_hora
+  }
+
+Saida de sucesso:
+  Mensagem recebida registrada e resposta enviada ao telefone do cliente.
+
+Saidas de erro:
+  "payload invalido"
+  "mensagem duplicada"
+  "telefone do cliente e obrigatorio"
+  "texto da mensagem e obrigatorio"
+  "falha ao enviar mensagem"
+
+---
+
+Camada: Apresentacao
+
+Fluxo endpoint_webhook_whatsapp:
+  1. Receber requisicao simulada do provedor WhatsApp.
+  2. Converter corpo da requisicao para payload_whatsapp.
+  3. Chamar caso de uso processar_mensagem_whatsapp(payload_whatsapp).
+  4. Se retorno for sucesso:
+       Retornar status "200 OK" com "mensagem processada".
+  5. Se retorno for erro de validacao:
+       Retornar status "400 BAD_REQUEST" com mensagem de erro.
+  6. Se retorno for mensagem duplicada:
+       Retornar status "200 OK" com "mensagem ja processada".
+  7. Se retorno for falha de envio:
+       Retornar status "502 BAD_GATEWAY" com "falha ao enviar mensagem".
+
+---
+
+Camada: Aplicacao
+
+Caso de uso processar_mensagem_whatsapp(payload_whatsapp):
+  1. Validar payload:
+     Se payload_whatsapp estiver vazio:
+       Retornar erro "payload invalido".
+     Se telefone_cliente estiver vazio:
+       Retornar erro "telefone do cliente e obrigatorio".
+     Se texto estiver vazio:
+       Retornar erro "texto da mensagem e obrigatorio".
+
+  2. Validar idempotencia:
+     mensagem_recebida = repositorio_mensagens.buscar_por_mensagem_id(payload_whatsapp.mensagem_id)
+     Se mensagem_recebida existir:
+       Retornar erro "mensagem duplicada".
+
+  3. Registrar mensagem recebida:
+     mensagem = MensagemWhatsApp {
+       id: repositorio_mensagens.proximo_id(),
+       mensagem_id_externo: payload_whatsapp.mensagem_id,
+       telefone_cliente: payload_whatsapp.telefone_cliente,
+       nome_cliente: payload_whatsapp.nome_cliente,
+       direcao: "ENTRADA",
+       texto: payload_whatsapp.texto,
+       status: "RECEBIDA",
+       data_hora: payload_whatsapp.recebido_em
+     }
+     repositorio_mensagens.salvar(mensagem)
+
+  4. Obter ou criar sessao do cliente:
+     sessao = repositorio_sessoes.buscar_por_telefone(payload_whatsapp.telefone_cliente)
+     Se sessao nao existir:
+       sessao = criar_sessao_chat(payload_whatsapp.telefone_cliente, payload_whatsapp.nome_cliente)
+       repositorio_sessoes.salvar(sessao)
+
+  5. Interpretar intencao da mensagem:
+     intencao = interpretar_texto_cliente(payload_whatsapp.texto)
+
+  6. Gerar resposta:
+     resposta = roteador_chatbot.responder(sessao, intencao, payload_whatsapp.texto)
+
+     Observacao:
+       Nesta task, o roteador pode retornar uma mensagem generica.
+       As consultas de produto, categoria e pedido serao detalhadas nas tasks
+       T-S3-C1-02 e T-S3-C2-01.
+
+  7. Enviar resposta pelo gateway:
+     resultado_envio = gateway_whatsapp.enviar_mensagem(
+       telefone_destino = payload_whatsapp.telefone_cliente,
+       texto = resposta.texto
+     )
+
+     Se resultado_envio for erro:
+       Registrar mensagem de saida com status "ERRO_ENVIO".
+       Retornar erro "falha ao enviar mensagem".
+
+  8. Registrar mensagem enviada:
+     mensagem_saida = MensagemWhatsApp {
+       id: repositorio_mensagens.proximo_id(),
+       mensagem_id_externo: resultado_envio.mensagem_id_externo,
+       telefone_cliente: payload_whatsapp.telefone_cliente,
+       nome_cliente: payload_whatsapp.nome_cliente,
+       direcao: "SAIDA",
+       texto: resposta.texto,
+       status: "ENVIADA",
+       data_hora: data_hora_atual()
+     }
+     repositorio_mensagens.salvar(mensagem_saida)
+
+  9. Atualizar sessao:
+     sessao.ultima_intencao = intencao.tipo
+     sessao.ultima_mensagem_em = data_hora_atual()
+     repositorio_sessoes.salvar(sessao)
+
+  10. Retornar sucesso.
+
+Servico interpretar_texto_cliente(texto):
+  1. Normalizar texto:
+     texto_normalizado = remover_acentos(converter_para_minusculo(texto))
+
+  2. Se texto_normalizado contiver "tem " ou "produto":
+       Retornar Intencao { tipo: "CONSULTAR_PRODUTO", confianca: "MEDIA" }
+
+  3. Se texto_normalizado contiver "categoria" ou nome de categoria conhecida:
+       Retornar Intencao { tipo: "LISTAR_CATEGORIA", confianca: "MEDIA" }
+
+  4. Se texto_normalizado contiver numero seguido de nome de produto:
+       Retornar Intencao { tipo: "MONTAR_PEDIDO", confianca: "MEDIA" }
+
+  5. Caso contrario:
+       Retornar Intencao { tipo: "AJUDA", confianca: "BAIXA" }
+
+Servico roteador_chatbot.responder(sessao, intencao, texto_original):
+  1. Se intencao.tipo for "CONSULTAR_PRODUTO":
+       Retornar RespostaChat { texto: "Vou consultar esse produto para voce." }
+
+  2. Se intencao.tipo for "LISTAR_CATEGORIA":
+       Retornar RespostaChat { texto: "Vou listar os produtos disponiveis dessa categoria." }
+
+  3. Se intencao.tipo for "MONTAR_PEDIDO":
+       Retornar RespostaChat { texto: "Vou montar seu pedido e conferir o estoque." }
+
+  4. Caso contrario:
+       Retornar RespostaChat {
+         texto: "Ola! Envie o nome do produto, uma categoria ou a quantidade desejada."
+       }
+
+---
+
+Camada: Dominio
+
+Entidade: MensagemWhatsApp
+  Atributos:
+    id: texto obrigatorio
+    mensagem_id_externo: texto obrigatorio e unico para mensagens de entrada
+    telefone_cliente: texto obrigatorio
+    nome_cliente: texto opcional
+    direcao: texto (ENTRADA, SAIDA)
+    texto: texto obrigatorio
+    status: texto (RECEBIDA, ENVIADA, ERRO_ENVIO)
+    data_hora: data_hora obrigatoria
+
+Entidade: SessaoChat
+  Atributos:
+    id: texto obrigatorio
+    telefone_cliente: texto obrigatorio e unico
+    nome_cliente: texto opcional
+    estado_atual: texto
+    ultima_intencao: texto opcional
+    criada_em: data_hora obrigatoria
+    ultima_mensagem_em: data_hora obrigatoria
+
+Entidade: Intencao
+  Atributos:
+    tipo: texto obrigatorio
+    confianca: texto obrigatorio
+
+Entidade: RespostaChat
+  Atributos:
+    texto: texto obrigatorio
+
+Regras de Negocio:
+  1. Cada mensagem de entrada deve ser processada uma unica vez.
+  2. O telefone do cliente identifica a sessao do atendimento.
+  3. Toda resposta enviada deve ser registrada para auditoria do fluxo.
+  4. O webhook nao altera estoque diretamente; ele apenas encaminha para os
+     casos de uso de consulta ou pedido nas tasks seguintes.
+
+Funcao criar_sessao_chat(telefone_cliente, nome_cliente):
+  Retornar SessaoChat {
+    id: repositorio_sessoes.proximo_id(),
+    telefone_cliente: telefone_cliente,
+    nome_cliente: nome_cliente,
+    estado_atual: "INICIO",
+    ultima_intencao: vazio,
+    criada_em: data_hora_atual(),
+    ultima_mensagem_em: data_hora_atual()
+  }
+
+---
+
+Camada: Infraestrutura
+
+Repositorio simulado: repositorio_mensagens
+
+Dados em memoria:
+  mensagens_whatsapp = lista vazia
+
+Funcao proximo_id():
+  Retornar "MSG-" + proximo_numero_sequencial()
+
+Funcao buscar_por_mensagem_id(mensagem_id_externo):
+  Para cada mensagem em mensagens_whatsapp:
+    Se mensagem.mensagem_id_externo for igual a mensagem_id_externo:
+      Retornar mensagem
+  Retornar vazio
+
+Funcao salvar(mensagem):
+  Adicionar ou atualizar mensagem na lista mensagens_whatsapp
+  Retornar sucesso
+
+Repositorio simulado: repositorio_sessoes
+
+Dados em memoria:
+  sessoes_chat = lista vazia
+
+Funcao proximo_id():
+  Retornar "CHAT-" + proximo_numero_sequencial()
+
+Funcao buscar_por_telefone(telefone_cliente):
+  Para cada sessao em sessoes_chat:
+    Se sessao.telefone_cliente for igual a telefone_cliente:
+      Retornar sessao
+  Retornar vazio
+
+Funcao salvar(sessao):
+  Adicionar ou atualizar sessao na lista sessoes_chat
+  Retornar sucesso
+
+Gateway simulado: gateway_whatsapp
+
+Funcao enviar_mensagem(telefone_destino, texto):
+  1. Se telefone_destino estiver vazio ou texto estiver vazio:
+       Retornar erro "falha ao enviar mensagem".
+
+  2. Registrar chamada simulada ao provedor WhatsApp:
+       envio = {
+         mensagem_id_externo: "WPP-OUT-" + proximo_numero_sequencial(),
+         telefone_destino: telefone_destino,
+         texto: texto,
+         enviado_em: data_hora_atual()
+       }
+
+  3. Retornar sucesso com envio.
+
+---
+
+Rastreabilidade dos testes:
+  tests/chatbot/webhook_whatsapp_test.txt (previsto em T-S3-C1-03)
