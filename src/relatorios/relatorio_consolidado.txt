@@ -1,0 +1,35 @@
+# Pseudocodigo: relatorio consolidado de estoque
+
+Task: T-S2-E3-01
+Historia: E3-US01
+Camadas: Aplicacao, Dominio, Infraestrutura
+
+Objetivo:
+  Consolidar saldo de estoque por produto e por loja, com total por produto e total geral.
+
+Caso de uso gerar_relatorio_consolidado(filtro_produto opcional):
+  1. registros = repositorio_estoque.listar_saldos(filtro_produto)
+  2. Se registros estiver vazio:
+       Retornar { itens: [], total_geral: 0 }
+  3. agrupado = agrupar por produto e loja
+  4. Para cada produto em agrupado:
+       calcular total_por_produto somando saldos das lojas
+  5. total_geral = soma de todos os total_por_produto
+  6. Retornar estrutura:
+       itens: [
+         {
+           produto_id,
+           produto_nome,
+           lojas: [{ loja_id, loja_nome, quantidade }],
+           total_por_produto
+         }
+       ],
+       total_geral
+
+Regras de dominio:
+  - Cada item de loja deve representar uma unica combinacao produto x loja.
+  - Quantidade consolidada nao pode ser negativa.
+  - total_geral deve refletir apenas estoque ativo.
+
+Rastreabilidade dos testes:
+  tests/relatorios/relatorio_consolidado_test.txt
