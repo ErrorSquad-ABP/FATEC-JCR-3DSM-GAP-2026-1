@@ -1,0 +1,21 @@
+# Teste pseudocodigo: relatorio consolidado multi-loja
+
+Task: T-S2-E3-03
+Historia: E3-US01
+
+Cenario: consolidar saldo por produto em cinco lojas
+  Dado que existe produto "ARROZ-001" nas lojas LOJA-01..LOJA-05
+  Quando gerar relatorio consolidado
+  Entao deve existir uma linha por loja com saldo
+  E deve existir total_por_produto para "ARROZ-001"
+
+Cenario: calcular total geral do estoque
+  Dado que relatorio contem multiplos produtos e lojas
+  Quando consolidar totais
+  Entao o campo total_geral deve ser a soma de todas as quantidades
+
+Cenario: retornar vazio quando nao houver estoque
+  Dado que nao existem registros de estoque ativos
+  Quando gerar relatorio consolidado
+  Entao o sistema deve retornar lista vazia
+  E total_geral igual a 0
