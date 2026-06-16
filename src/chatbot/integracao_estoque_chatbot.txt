@@ -1,0 +1,33 @@
+# Pseudocodigo: contrato de integracao chatbot x estoque
+
+Task: T-S3-C0-01
+Camadas: Aplicacao, Infraestrutura
+
+Contrato interno consultar_disponibilidade_produto(produto_id, loja_id_opcional):
+  entrada:
+    produto_id obrigatorio
+    loja_id_opcional
+  saida:
+    produto_id
+    disponibilidade_por_loja[]
+    total_disponivel
+
+Contrato interno confirmar_baixa_estoque(pedido_id, itens, loja_id):
+  entrada:
+    pedido_id obrigatorio
+    itens obrigatorio
+    loja_id obrigatorio
+  saida:
+    status ("SUCESSO" | "FALHA")
+    motivo_erro opcional
+
+Fluxo aplicacao:
+  1. Chatbot recebe mensagem do cliente.
+  2. Chatbot consulta estoque via consultar_disponibilidade_produto.
+  3. Cliente confirma pedido.
+  4. Chatbot chama confirmar_baixa_estoque.
+  5. Se status for SUCESSO, pedido muda para CONFIRMADO.
+  6. Se status for FALHA, pedido permanece PENDENTE.
+
+Rastreabilidade dos testes:
+  tests/integration/integracao_estoque_chatbot_test.txt
