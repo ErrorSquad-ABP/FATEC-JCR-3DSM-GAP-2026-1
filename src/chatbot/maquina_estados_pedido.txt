@@ -1,0 +1,521 @@
+# Pseudocodigo: maquina de estados do pedido
+
+Task: T-S3-C2-01
+Historia: E2-US01, E2-US02, E2-US03
+Camadas: Apresentacao, Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Descrever o controle do fluxo de pedido do cliente pelo WhatsApp por estados.
+  O fluxo cobre o inicio da montagem, coleta de produto e quantidade, geracao
+  de resumo e entrada na etapa de aguardando confirmacao.
+
+---
+
+Entrada:
+  sessao_chat
+  texto_mensagem
+  loja_id
+
+Saida:
+  resposta para o cliente
+  sessao atualizada
+  pedido em andamento atualizado
+
+Saidas de erro:
+  "sessao nao encontrada"
+  "texto da mensagem e obrigatorio"
+  "produto nao identificado"
+  "quantidade invalida"
+
+---
+
+Camada: Dominio
+
+Entidade conceitual PedidoChat:
+  id
+  telefone_cliente
+  nome_cliente
+  loja_id
+  produto_id
+  produto_nome
+  quantidade
+  valor_unitario
+  valor_total
+  status
+  criado_em
+  atualizado_em
+
+Status possiveis do pedido:
+  EM_MONTAGEM
+  AGUARDANDO_CONFIRMACAO
+  CONFIRMADO
+  CANCELADO
+
+Estados da maquina:
+  INICIO:
+    Sessao pronta para interpretar uma nova mensagem.
+    Pode iniciar a montagem de pedido quando houver intencao de compra.
+
+  MONTANDO_PEDIDO:
+    Sessao tentando identificar produto e quantidade.
+    Cria ou atualiza o pedido em andamento.
+
+  AGUARDANDO_QUANTIDADE:
+    Produto ja identificado.
+    Sessao espera uma quantidade valida antes de gerar o resumo.
+
+  RESUMO_PEDIDO:
+    Pedido possui produto e quantidade.
+    Sistema monta o resumo e prepara a etapa de confirmacao.
+
+  AGUARDANDO_CONFIRMACAO:
+    Cliente deve responder CONFIRMAR ou CANCELAR.
+    Confirmacao e cancelamento definitivos pertencem a task T-S3-C2-02.
+
+  CONFIRMADO:
+    Pedido ja confirmado.
+    A maquina nao inicia novo fluxo automaticamente.
+
+  CANCELADO:
+    Pedido ja cancelado.
+    Cliente pode iniciar novo pedido se desejar.
+
+  ENCERRADO:
+    Sessao finalizada.
+    Nova mensagem de compra pode reiniciar a sessao em INICIO.
+
+---
+
+Regras:
+  1. Toda sessao sem estado deve iniciar em INICIO.
+  2. Toda mensagem vazia deve ser rejeitada antes de processar estado.
+  3. Produto e quantidade devem ser salvos no pedido em andamento antes do resumo.
+  4. O resumo sempre deve ser exibido antes da confirmacao.
+  5. Nenhuma baixa de estoque deve ocorrer em INICIO, MONTANDO_PEDIDO,
+     AGUARDANDO_QUANTIDADE, RESUMO_PEDIDO ou AGUARDANDO_CONFIRMACAO.
+  6. Nenhuma notificacao ao gerente deve ocorrer antes da confirmacao e da baixa
+     concluida em tasks futuras.
+  7. Validacao de disponibilidade sera integrada na task T-S3-C3-01.
+  8. Baixa automatica transacional sera integrada na task T-S3-C3-02.
+  9. Falta de estoque e alternativas serao integradas na task T-S3-C3-03.
+  10. Confirmacao e cancelamento definitivos serao detalhados na task T-S3-C2-02.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal processar_fluxo_pedido(sessao_chat, texto_mensagem, loja_id):
+  1. Validar sessao:
+     Se sessao_chat nao existir:
+       Retornar erro "sessao nao encontrada".
+
+  2. Validar mensagem:
+     Se texto_mensagem estiver vazio:
+       Retornar erro "texto da mensagem e obrigatorio".
+
+  3. Garantir estado inicial:
+     Se sessao_chat.estado_atual estiver vazio:
+       sessao_chat.estado_atual = "INICIO".
+       repositorio_sessoes.salvar(sessao_chat).
+
+  4. Normalizar mensagem:
+     texto_normalizado = normalizar_texto(texto_mensagem).
+
+  5. Identificar estado atual:
+     estado = sessao_chat.estado_atual.
+
+  6. Encaminhar para o fluxo especifico:
+     Se estado for "INICIO":
+       resultado = processar_estado_inicio(sessao_chat, texto_normalizado, loja_id).
+
+     Se estado for "MONTANDO_PEDIDO":
+       resultado = processar_estado_montando_pedido(sessao_chat, texto_normalizado, loja_id).
+
+     Se estado for "AGUARDANDO_QUANTIDADE":
+       resultado = processar_estado_aguardando_quantidade(sessao_chat, texto_normalizado, loja_id).
+
+     Se estado for "RESUMO_PEDIDO":
+       resultado = processar_estado_resumo_pedido(sessao_chat, loja_id).
+
+     Se estado for "AGUARDANDO_CONFIRMACAO":
+       resultado = processar_estado_aguardando_confirmacao(sessao_chat, texto_normalizado).
+
+     Se estado for "CONFIRMADO":
+       resultado = processar_estado_confirmado(sessao_chat).
+
+     Se estado for "CANCELADO":
+       resultado = processar_estado_cancelado(sessao_chat).
+
+     Se estado for "ENCERRADO":
+       resultado = processar_estado_encerrado(sessao_chat, texto_normalizado, loja_id).
+
+     Se estado nao for reconhecido:
+       sessao_chat.estado_atual = "INICIO".
+       repositorio_sessoes.salvar(sessao_chat).
+       resultado.resposta = "Nao entendi o estado da conversa. Vamos comecar novamente."
+
+  7. Persistir alteracoes:
+     Se resultado.sessao_atualizada existir:
+       repositorio_sessoes.salvar(resultado.sessao_atualizada).
+
+     Se resultado.pedido_atualizado existir:
+       repositorio_pedidos.salvar(resultado.pedido_atualizado).
+
+  8. Retornar resposta textual:
+     Retornar resultado.resposta.
+
+---
+
+Fluxo auxiliar processar_estado_inicio(sessao_chat, texto_normalizado, loja_id):
+  1. Interpretar intencao:
+     intencao = interpretar_intencao(texto_normalizado).
+
+  2. Se intencao for "MONTAR_PEDIDO":
+     sessao_chat.estado_atual = "MONTANDO_PEDIDO".
+     Retornar processar_estado_montando_pedido(sessao_chat, texto_normalizado, loja_id).
+
+  3. Se intencao nao for compra:
+     resposta = "Voce pode consultar um produto ou montar um pedido. Exemplo: quero comprar arroz."
+     Retornar resposta com sessao sem alterar o pedido.
+
+Exemplos de intencao de compra:
+  "quero comprar arroz"
+  "quero 2 unidades de arroz"
+  "comprar feijao"
+  "adicionar leite no pedido"
+
+---
+
+Fluxo auxiliar processar_estado_montando_pedido(sessao_chat, texto_normalizado, loja_id):
+  1. Extrair nome do produto:
+     nome_produto = extrair_nome_produto(texto_normalizado).
+
+  2. Se nome_produto nao for identificado:
+     sessao_chat.estado_atual = "MONTANDO_PEDIDO".
+     resposta = "Qual produto voce deseja adicionar ao pedido?"
+     Retornar resposta com sessao atualizada.
+
+  3. Buscar produto:
+     produto = repositorio_produtos.buscar_ativo_por_nome_aproximado(nome_produto).
+
+  4. Se produto nao existir:
+     sessao_chat.estado_atual = "MONTANDO_PEDIDO".
+     resposta = "Nao encontrei esse produto. Pode informar o nome novamente?"
+     Retornar resposta com sessao atualizada.
+
+  5. Obter pedido em andamento:
+     pedido = obter_ou_criar_pedido_em_andamento(sessao_chat, loja_id).
+
+  6. Atualizar produto no pedido:
+     pedido.produto_id = produto.id.
+     pedido.produto_nome = produto.nome.
+     pedido.valor_unitario = produto.preco.
+     pedido.loja_id = loja_id.
+     pedido.status = "EM_MONTAGEM".
+     pedido.atualizado_em = data_hora_atual().
+
+  7. Extrair quantidade:
+     quantidade = extrair_quantidade(texto_normalizado).
+
+  8. Se quantidade estiver presente e for valida:
+     pedido.quantidade = quantidade.
+     pedido.valor_total = produto.preco * quantidade.
+     sessao_chat.estado_atual = "RESUMO_PEDIDO".
+     Retornar processar_estado_resumo_pedido(sessao_chat, loja_id, pedido).
+
+  9. Se quantidade nao estiver presente:
+     sessao_chat.estado_atual = "AGUARDANDO_QUANTIDADE".
+     resposta = "Quantas unidades de " + produto.nome + " voce deseja?"
+     Retornar resposta com sessao e pedido atualizados.
+
+  10. Se quantidade for invalida:
+      sessao_chat.estado_atual = "AGUARDANDO_QUANTIDADE".
+      resposta = "Informe uma quantidade maior que zero para " + produto.nome + "."
+      Retornar resposta com sessao e pedido atualizados.
+
+---
+
+Fluxo auxiliar processar_estado_aguardando_quantidade(sessao_chat, texto_normalizado, loja_id):
+  1. Obter pedido em andamento:
+     pedido = repositorio_pedidos.buscar_em_andamento_por_sessao(sessao_chat.id).
+
+  2. Se pedido nao existir ou pedido.produto_id estiver vazio:
+     sessao_chat.estado_atual = "MONTANDO_PEDIDO".
+     resposta = "Vamos comecar novamente. Qual produto voce deseja comprar?"
+     Retornar resposta com sessao atualizada.
+
+  3. Extrair quantidade:
+     quantidade = extrair_quantidade(texto_normalizado).
+
+  4. Se quantidade estiver vazia, zero, negativa ou invalida:
+     sessao_chat.estado_atual = "AGUARDANDO_QUANTIDADE".
+     resposta = "Informe uma quantidade valida, maior que zero."
+     Retornar resposta com sessao atualizada.
+
+  5. Atualizar pedido:
+     pedido.quantidade = quantidade.
+     pedido.valor_total = pedido.valor_unitario * quantidade.
+     pedido.status = "EM_MONTAGEM".
+     pedido.atualizado_em = data_hora_atual().
+
+  6. Avancar estado:
+     sessao_chat.estado_atual = "RESUMO_PEDIDO".
+
+  7. Retornar processar_estado_resumo_pedido(sessao_chat, loja_id, pedido).
+
+---
+
+Fluxo auxiliar processar_estado_resumo_pedido(sessao_chat, loja_id, pedido_opcional):
+  1. Obter pedido:
+     Se pedido_opcional existir:
+       pedido = pedido_opcional.
+     Se pedido_opcional nao existir:
+       pedido = repositorio_pedidos.buscar_em_andamento_por_sessao(sessao_chat.id).
+
+  2. Validar pedido:
+     Se pedido nao existir:
+       sessao_chat.estado_atual = "INICIO".
+       resposta = "Nao encontrei um pedido em andamento. Envie o produto que deseja comprar."
+       Retornar resposta com sessao atualizada.
+
+     Se pedido.produto_nome estiver vazio:
+       sessao_chat.estado_atual = "MONTANDO_PEDIDO".
+       resposta = "Qual produto voce deseja adicionar ao pedido?"
+       Retornar resposta com sessao atualizada.
+
+     Se pedido.quantidade estiver vazia ou pedido.quantidade <= 0:
+       sessao_chat.estado_atual = "AGUARDANDO_QUANTIDADE".
+       resposta = "Quantas unidades de " + pedido.produto_nome + " voce deseja?"
+       Retornar resposta com sessao atualizada.
+
+  3. Calcular total:
+     pedido.valor_total = pedido.valor_unitario * pedido.quantidade.
+
+  4. Montar resumo:
+     resumo = montar_resumo_pedido(pedido).
+
+  5. Atualizar status:
+     pedido.status = "AGUARDANDO_CONFIRMACAO".
+     pedido.atualizado_em = data_hora_atual().
+     sessao_chat.estado_atual = "AGUARDANDO_CONFIRMACAO".
+
+  6. Garantir efeitos que nao devem ocorrer:
+     Nao chamar servico de baixa de estoque.
+     Nao registrar movimentacao de estoque.
+     Nao chamar notificacao ao gerente.
+
+  7. Retornar resumo com sessao e pedido atualizados.
+
+Formato esperado do resumo:
+  Produto: pedido.produto_nome
+  Quantidade: pedido.quantidade
+  Valor unitario: pedido.valor_unitario
+  Valor total: pedido.valor_total
+  Orientacao: "Responda CONFIRMAR para concluir o pedido ou CANCELAR para desistir."
+
+---
+
+Fluxo auxiliar processar_estado_aguardando_confirmacao(sessao_chat, texto_normalizado):
+  1. Interpretar intencao:
+     intencao = interpretar_intencao(texto_normalizado).
+
+  2. Se intencao for "CONFIRMAR_PEDIDO":
+     resposta = "Confirmacao recebida. O fluxo definitivo sera processado pela task T-S3-C2-02."
+     Encaminhar pedido para fluxo de confirmacao da task T-S3-C2-02.
+     Nao executar baixa de estoque nesta task.
+     Nao notificar gerente nesta task.
+     Retornar resposta.
+
+  3. Se intencao for "CANCELAR_PEDIDO":
+     resposta = "Cancelamento recebido. O fluxo definitivo sera processado pela task T-S3-C2-02."
+     Encaminhar pedido para fluxo de cancelamento da task T-S3-C2-02.
+     Nao executar baixa de estoque.
+     Nao notificar gerente.
+     Retornar resposta.
+
+  4. Se intencao nao for reconhecida:
+     resposta = "Responda CONFIRMAR para concluir o pedido ou CANCELAR para desistir."
+     sessao_chat.estado_atual = "AGUARDANDO_CONFIRMACAO".
+     Retornar resposta com sessao atualizada.
+
+---
+
+Fluxo auxiliar processar_estado_confirmado(sessao_chat):
+  1. Manter sessao em CONFIRMADO.
+  2. Responder:
+     "Este pedido ja foi confirmado. Para iniciar outro pedido, envie uma nova solicitacao."
+  3. Nao iniciar novo fluxo automaticamente.
+  4. Nao executar baixa duplicada de estoque.
+  5. Nao duplicar notificacao ao gerente.
+
+---
+
+Fluxo auxiliar processar_estado_cancelado(sessao_chat):
+  1. Manter sessao em CANCELADO.
+  2. Responder:
+     "Este pedido ja foi cancelado. Voce pode iniciar um novo pedido se desejar."
+  3. Nao confirmar o pedido cancelado.
+  4. Nao executar baixa de estoque.
+  5. Nao notificar gerente.
+
+---
+
+Fluxo auxiliar processar_estado_encerrado(sessao_chat, texto_normalizado, loja_id):
+  1. Interpretar intencao:
+     intencao = interpretar_intencao(texto_normalizado).
+
+  2. Se intencao for "MONTAR_PEDIDO":
+     sessao_chat.estado_atual = "INICIO".
+     repositorio_sessoes.salvar(sessao_chat).
+     Retornar processar_estado_inicio(sessao_chat, texto_normalizado, loja_id).
+
+  3. Se intencao nao for compra:
+     resposta = "Conversa encerrada. Envie uma mensagem de compra para iniciar novo pedido."
+     Retornar resposta.
+
+---
+
+Servicos auxiliares:
+
+Servico interpretar_intencao(texto_normalizado):
+  1. Se texto_normalizado contiver "confirmar", "sim confirmar", "fechar pedido":
+       Retornar "CONFIRMAR_PEDIDO".
+
+  2. Se texto_normalizado contiver "cancelar", "desistir", "nao quero":
+       Retornar "CANCELAR_PEDIDO".
+
+  3. Se texto_normalizado contiver "quero comprar", "quero ", "comprar",
+     "adicionar", "pedido":
+       Retornar "MONTAR_PEDIDO".
+
+  4. Caso contrario:
+       Retornar "NAO_RECONHECIDA".
+
+Servico extrair_nome_produto(texto_normalizado):
+  1. Remover termos de intencao:
+     "quero comprar", "quero", "comprar", "adicionar", "no pedido",
+     "unidade", "unidades", "de".
+
+  2. Remover numeros usados como quantidade.
+
+  3. Remover pontuacao e espacos duplicados.
+
+  4. Se texto restante estiver vazio:
+       Retornar vazio.
+
+  5. Retornar texto restante como nome aproximado do produto.
+
+Servico extrair_quantidade(texto_normalizado):
+  1. Procurar numero inteiro maior que zero na mensagem.
+
+  2. Se numero existir:
+       Retornar numero.
+
+  3. Se texto representar quantidade por extenso conhecida:
+       Converter para numero e retornar.
+
+  4. Se quantidade estiver vazia, zero, negativa ou invalida:
+       Retornar quantidade invalida.
+
+Servico obter_ou_criar_pedido_em_andamento(sessao_chat, loja_id):
+  1. Buscar pedido em andamento da sessao:
+     pedido = repositorio_pedidos.buscar_em_andamento_por_sessao(sessao_chat.id).
+
+  2. Se pedido existir:
+       Retornar pedido.
+
+  3. Se pedido nao existir:
+       Criar PedidoChat com:
+         id = repositorio_pedidos.proximo_id()
+         telefone_cliente = sessao_chat.telefone_cliente
+         nome_cliente = sessao_chat.nome_cliente
+         loja_id = loja_id
+         status = "EM_MONTAGEM"
+         criado_em = data_hora_atual()
+         atualizado_em = data_hora_atual()
+
+       Retornar pedido.
+
+Servico montar_resumo_pedido(pedido):
+  1. Montar texto:
+     "Resumo do pedido:"
+     "Produto: " + pedido.produto_nome
+     "Quantidade: " + pedido.quantidade
+     "Valor unitario: " + pedido.valor_unitario
+     "Valor total: " + pedido.valor_total
+     "Responda CONFIRMAR para concluir o pedido ou CANCELAR para desistir."
+
+  2. Retornar texto.
+
+Servico normalizar_texto(texto_mensagem):
+  1. Converter para minusculo.
+  2. Remover acentos.
+  3. Remover pontuacao que nao altere o sentido.
+  4. Remover espacos duplicados.
+  5. Retornar texto normalizado.
+
+---
+
+Camada: Infraestrutura
+
+Integracoes:
+  repositorio_sessoes:
+    buscar_por_telefone
+    salvar
+
+  repositorio_pedidos:
+    proximo_id
+    buscar_em_andamento_por_sessao
+    salvar
+
+  repositorio_produtos:
+    buscar_ativo_por_nome_aproximado
+
+Integracoes futuras apenas referenciadas:
+  T-S3-C2-02:
+    fluxo de confirmacao definitiva
+    fluxo de cancelamento definitivo
+
+  T-S3-C3-01:
+    validacao de disponibilidade em estoque antes de confirmar
+
+  T-S3-C3-02:
+    baixa automatica transacional apos confirmacao valida
+
+  T-S3-C3-03:
+    tratamento de falta de estoque e sugestao de alternativas
+
+---
+
+Camada: Apresentacao
+
+Mensagens esperadas ao cliente:
+  Quando nao houver intencao de compra:
+    "Voce pode consultar um produto ou montar um pedido. Exemplo: quero comprar arroz."
+
+  Quando o produto nao for informado:
+    "Qual produto voce deseja adicionar ao pedido?"
+
+  Quando a quantidade nao for informada:
+    "Quantas unidades de Arroz voce deseja?"
+
+  Quando a quantidade for invalida:
+    "Informe uma quantidade valida, maior que zero."
+
+  Quando o resumo for gerado:
+    "Responda CONFIRMAR para concluir o pedido ou CANCELAR para desistir."
+
+  Quando a resposta de confirmacao for invalida:
+    "Responda CONFIRMAR para concluir o pedido ou CANCELAR para desistir."
+
+  Quando o pedido ja estiver confirmado:
+    "Este pedido ja foi confirmado. Para iniciar outro pedido, envie uma nova solicitacao."
+
+  Quando o pedido ja estiver cancelado:
+    "Este pedido ja foi cancelado. Voce pode iniciar um novo pedido se desejar."
+
+---
+
+Rastreabilidade:
+  tests/chatbot/fluxo_pedido_test.txt
