@@ -1,0 +1,33 @@
+CASO_DE_USO: Cadastrar Produto
+
+ENTRADA:
+    nome
+    codigo_barras
+    categoria
+    preco
+    estoque_minimo
+
+PROCESSO:
+    SE usuario_nao_autenticado
+        RETORNAR "Acesso negado"
+
+    SE nome_vazio
+        RETORNAR "Nome obrigatório"
+
+    SE preco <= 0
+        RETORNAR "Preço inválido"
+
+    SE produto_ja_existe(codigo_barras)
+        RETORNAR "Produto já cadastrado"
+
+    criar Produto
+        Produto.nome = nome
+        Produto.codigo_barras = codigo_barras
+        Produto.categoria = categoria
+        Produto.preco = preco
+        Produto.estoque_minimo = estoque_minimo
+
+    salvar Produto
+
+SAÍDA:
+    "Produto cadastrado com sucesso"
