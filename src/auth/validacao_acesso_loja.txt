@@ -1,0 +1,18 @@
+# Pseudocodigo: validacao de acesso por loja
+
+Task: T-S2-E4-02
+Historia: E4-US02
+Camada: Aplicacao
+
+Funcao validar_permissao_loja(usuario, loja_alvo):
+  1. Se usuario.papel == "ADMIN":
+       Retornar permitido.
+  2. permissao = repositorio_permissoes.buscar_por_usuario(usuario.id)
+  3. Se permissao nao existir:
+       Retornar erro "acesso negado para loja".
+  4. Se permissao.loja_id != loja_alvo:
+       Retornar erro "acesso negado para loja".
+  5. Retornar permitido.
+
+Rastreabilidade dos testes:
+  tests/auth/acesso_loja_perfil_test.txt
