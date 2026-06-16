@@ -1,0 +1,61 @@
+# Teste integracao pseudocodigo: pedido WhatsApp estoque chat baixa
+
+Task: T-S3-E2E-01
+Historia: E2-US01, E2-US02, E2-US03, E3-US01, E3-US02, E4-US01, E4-US02
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Cenario: fluxo completo de pedido WhatsApp com baixa de estoque e notificacao ao gerente
+  Dado que o produto "PROD-001" existe com nome "Produto Teste A"
+  E o produto "PROD-001" custa R$ 10,00
+  E o produto "PROD-001" possui saldo 15 na "LOJA-01"
+  E o cliente se chama "Cliente Teste" e usa o telefone "(11) 99999-0000"
+  E existe gerente ativo da "LOJA-01" com WhatsApp configurado
+  Quando o cliente enviar "tem Produto Teste A?" pelo WhatsApp
+  Entao o chatbot deve responder que "Produto Teste A" custa R$ 10,00
+  E deve informar disponibilidade de 15 unidade(s)
+  Quando o cliente enviar "quero 2 Produto Teste A"
+  Entao o chatbot deve montar um pedido pendente com 2 unidade(s)
+  E deve responder um resumo do pedido antes da confirmacao
+  Quando o cliente enviar "confirmar"
+  Entao o sistema deve confirmar o pedido "PED-001"
+  E deve baixar o saldo de "PROD-001" na "LOJA-01" de 15 para 13
+  E deve registrar movimentacao de estoque do tipo "SAIDA"
+  E deve enviar notificacao WhatsApp ao gerente da "LOJA-01"
+  E a notificacao deve conter "Cliente Teste" e "(11) 99999-0000"
+
+Cenario: cancelar pedido pelo chat nao baixa estoque nem notifica gerente
+  Dado que o produto "PROD-001" possui saldo 15 na "LOJA-01"
+  E o cliente montou um pedido com 2 unidade(s) de "Produto Teste A"
+  Quando o cliente enviar "cancelar"
+  Entao o pedido deve ficar com status "CANCELADO"
+  E o saldo de "PROD-001" na "LOJA-01" deve permanecer 15
+  E nao deve existir movimentacao de estoque do tipo "SAIDA" para esse pedido
+  E nao deve enviar notificacao WhatsApp ao gerente
+
+Cenario: pedido com estoque insuficiente e recusado antes da confirmacao
+  Dado que o produto "PROD-001" possui saldo 15 na "LOJA-01"
+  Quando o cliente enviar "quero 100 Produto Teste A"
+  Entao o chatbot deve responder que nao ha estoque suficiente
+  E nao deve criar pedido confirmado
+  E o saldo de "PROD-001" na "LOJA-01" deve permanecer 15
+  E nao deve enviar notificacao WhatsApp ao gerente
+
+Cenario: concorrencia basica impede baixa duplicada do mesmo pedido confirmado
+  Dado que o pedido "PED-001" ja foi confirmado
+  E a baixa de estoque de 2 unidade(s) ja foi registrada para "PED-001"
+  E o saldo atual de "PROD-001" na "LOJA-01" e 13
+  Quando o sistema receber novamente a mensagem "confirmar" para o mesmo pedido
+  Entao o sistema deve ignorar a confirmacao duplicada
+  E o saldo de "PROD-001" na "LOJA-01" deve permanecer 13
+  E nao deve criar segunda movimentacao de saida para "PED-001"
+  E nao deve enviar segunda notificacao ao gerente
+
+Cenario: produto indisponivel sugere alternativa sem baixa de estoque
+  Dado que o produto "PROD-002" existe com nome "Produto Zerado"
+  E o produto "PROD-002" possui saldo 0 na "LOJA-01"
+  E existe o produto alternativo "Produto Teste A" com saldo 15 na "LOJA-01"
+  Quando o cliente enviar "quero Produto Zerado"
+  Entao o chatbot deve responder que "Produto Zerado" esta indisponivel
+  E deve sugerir "Produto Teste A" como alternativa
+  E nao deve baixar estoque
+  E nao deve notificar o gerente
