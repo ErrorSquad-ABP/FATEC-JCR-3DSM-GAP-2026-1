@@ -1,33 +1,121 @@
-CASO_DE_USO: Cadastrar Produto
+Task: T-S1-C1-01
+Historia: E1-US01
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
 
-ENTRADA:
-    nome
-    codigo_barras
-    categoria
-    preco
-    estoque_minimo
+Objetivo:
+  Permitir o cadastro de produtos para controle de estoque das lojas.
 
-PROCESSO:
-    SE usuario_nao_autenticado
-        RETORNAR "Acesso negado"
+---
 
-    SE nome_vazio
-        RETORNAR "Nome obrigatório"
+Entrada:
+  nome
+  codigo_barras
+  categoria
+  preco
+  estoque_minimo
 
-    SE preco <= 0
-        RETORNAR "Preço inválido"
+Saida:
+  produto cadastrado
+  mensagem de sucesso
 
-    SE produto_ja_existe(codigo_barras)
-        RETORNAR "Produto já cadastrado"
+Saidas de erro:
+  "usuario nao autenticado"
+  "nome obrigatorio"
+  "codigo de barras ja cadastrado"
+  "preco invalido"
 
-    criar Produto
-        Produto.nome = nome
-        Produto.codigo_barras = codigo_barras
-        Produto.categoria = categoria
-        Produto.preco = preco
-        Produto.estoque_minimo = estoque_minimo
+---
 
-    salvar Produto
+Camada: Dominio
 
-SAÍDA:
-    "Produto cadastrado com sucesso"
+Produto:
+  id
+  nome
+  codigo_barras
+  categoria
+  preco
+  estoque_minimo
+  status
+
+ResultadoCadastroProduto:
+  sucesso
+  motivo
+  produto_id
+  mensagem
+
+Motivos possiveis:
+  CADASTRADO
+  USUARIO_NAO_AUTENTICADO
+  NOME_INVALIDO
+  CODIGO_DUPLICADO
+  PRECO_INVALIDO
+
+Regras:
+  1. Usuario deve estar autenticado.
+  2. Nome e codigo de barras sao obrigatorios.
+  3. Codigo de barras deve ser unico.
+  4. Preco deve ser maior que zero.
+  5. Produto deve iniciar com status ATIVO.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal cadastrar_produto(dados_produto, usuario):
+
+  1. Validar autenticacao:
+     Se usuario nao autenticado:
+       Retornar ResultadoCadastroProduto
+         sucesso = falso
+         motivo = "USUARIO_NAO_AUTENTICADO"
+
+  2. Validar nome:
+     Se nome vazio:
+       Retornar ResultadoCadastroProduto
+         sucesso = falso
+         motivo = "NOME_INVALIDO"
+
+  3. Validar preco:
+     Se preco <= 0:
+       Retornar ResultadoCadastroProduto
+         sucesso = falso
+         motivo = "PRECO_INVALIDO"
+
+  4. Verificar duplicidade:
+     produto_existente =
+       repositorio_produtos.buscar_por_codigo_barras(codigo_barras)
+
+     Se produto_existente existir:
+       Retornar ResultadoCadastroProduto
+         sucesso = falso
+         motivo = "CODIGO_DUPLICADO"
+
+  5. Criar produto:
+     produto = novo Produto
+
+     produto.nome = nome
+     produto.codigo_barras = codigo_barras
+     produto.categoria = categoria
+     produto.preco = preco
+     produto.estoque_minimo = estoque_minimo
+     produto.status = "ATIVO"
+
+  6. Salvar produto:
+     repositorio_produtos.salvar(produto)
+
+  7. Retornar resultado:
+     sucesso = verdadeiro
+     motivo = "CADASTRADO"
+     produto_id = produto.id
+
+---
+
+Camada: Infraestrutura
+
+repositorio_produtos:
+  buscar_por_codigo_barras(codigo_barras)
+  salvar(produto)
+
+Integracoes:
+  autenticacao_usuario

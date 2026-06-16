@@ -1,42 +1,83 @@
-CASO_DE_USO: Editar Produto
+Task: T-S1-C1-02
+Historia: E1-US01
+Camadas: Aplicacao, Dominio, Infraestrutura
 
-ENTRADA:
-    id_produto
-    novos_dados
+Objetivo:
+  Permitir alteracao de produtos e consulta utilizando filtros.
 
-PROCESSO:
-    localizar produto
+---
 
-    SE produto_nao_encontrado
-        RETORNAR "Produto não encontrado"
+Entrada:
+  id_produto
+  filtros
 
-    atualizar dados
+Saida:
+  produto atualizado
+  lista de produtos
 
-    salvar alterações
+---
 
-SAÍDA:
-    "Produto atualizado com sucesso"
+Camada: Dominio
 
-CASO_DE_USO: Listar Produtos
+FiltrosProduto:
+  nome
+  categoria
+  codigo_barras
 
-ENTRADA:
-    filtro_nome
-    filtro_categoria
-    filtro_codigo_barras
+Regras:
+  1. Apenas produtos existentes podem ser alterados.
+  2. Filtros sao opcionais.
+  3. Resultado deve ser ordenado por nome.
 
-PROCESSO:
-    obter lista de produtos
+---
 
-    SE filtro_nome informado
-        aplicar filtro por nome
+Camada: Aplicacao
 
-    SE filtro_categoria informada
-        aplicar filtro por categoria
+Fluxo principal editar_produto(id_produto, novos_dados):
 
-    SE filtro_codigo_barras informado
-        aplicar filtro por código de barras
+  1. Buscar produto:
+     produto = repositorio_produtos.buscar_por_id(id_produto)
 
-    ordenar por nome
+  2. Validar existencia:
+     Se produto nao existir:
+       Retornar erro "PRODUTO_NAO_ENCONTRADO"
 
-SAÍDA:
-    lista_filtrada
+  3. Atualizar dados:
+     produto.nome = novos_dados.nome
+     produto.categoria = novos_dados.categoria
+     produto.preco = novos_dados.preco
+     produto.estoque_minimo = novos_dados.estoque_minimo
+
+  4. Salvar alteracoes:
+     repositorio_produtos.atualizar(produto)
+
+  5. Retornar sucesso
+
+---
+
+Fluxo principal listar_produtos(filtros):
+
+  1. Buscar produtos:
+     produtos = repositorio_produtos.listar()
+
+  2. Aplicar filtro nome:
+     Se filtros.nome informado
+
+  3. Aplicar filtro categoria:
+     Se filtros.categoria informada
+
+  4. Aplicar filtro codigo_barras:
+     Se filtros.codigo_barras informado
+
+  5. Ordenar por nome
+
+  6. Retornar lista
+
+---
+
+Camada: Infraestrutura
+
+repositorio_produtos:
+  buscar_por_id(id)
+  atualizar(produto)
+  listar()

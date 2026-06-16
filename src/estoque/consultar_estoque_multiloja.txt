@@ -1,25 +1,74 @@
-CASO_DE_USO: Consultar Estoque Multi-Loja
+Task: T-S1-C1-02
+Historia: E2-US02
+Camadas: Aplicacao, Dominio, Infraestrutura
 
-ENTRADA:
-    id_produto
+Objetivo:
+  Consultar o saldo de um produto em todas as lojas da rede.
 
-PROCESSO:
-    localizar produto
+---
 
-    SE produto_nao_encontrado
-        RETORNAR "Produto não encontrado"
+Entrada:
+  produto_id
 
-    PARA CADA loja
-        consultar quantidade_em_estoque
+Saida:
+  estoque por loja
+  estoque total
 
-        adicionar resultado à lista
+Saidas de erro:
+  "produto nao encontrado"
 
-    calcular estoque_total
+---
 
-SAÍDA:
-    Loja 1 -> quantidade
-    Loja 2 -> quantidade
-    Loja 3 -> quantidade
-    Loja 4 -> quantidade
-    Loja 5 -> quantidade
-    Estoque Total -> soma das quantidades
+Camada: Dominio
+
+ResultadoConsultaEstoque:
+  produto_id
+  estoque_total
+  estoques_por_loja
+
+Regras:
+  1. Consultar todas as lojas ativas.
+  2. Consolidar estoque total.
+  3. Exibir saldo individual por loja.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal consultar_estoque_multi_loja(produto_id):
+
+  1. Buscar produto:
+     produto = repositorio_produtos.buscar_por_id(produto_id)
+
+  2. Validar existencia:
+     Se produto nao existir:
+       Retornar erro "PRODUTO_NAO_ENCONTRADO"
+
+  3. Buscar lojas:
+     lojas = repositorio_lojas.listar_ativas()
+
+  4. Para cada loja:
+     estoque =
+       repositorio_estoque.buscar_por_produto_e_loja(
+         produto_id,
+         loja.id
+       )
+
+     adicionar resultado
+
+  5. Somar estoque total
+
+  6. Retornar ResultadoConsultaEstoque
+
+---
+
+Camada: Infraestrutura
+
+repositorio_produtos:
+  buscar_por_id(id)
+
+repositorio_lojas:
+  listar_ativas()
+
+repositorio_estoque:
+  buscar_por_produto_e_loja(produto_id, loja_id)

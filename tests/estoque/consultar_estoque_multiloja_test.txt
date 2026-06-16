@@ -1,33 +1,79 @@
-# Teste pseudocodigo: consulta estoque multiloja
+Task: T-S1-C1-06
+Historia: E1-US04
 
-Cenario: consulta de estoque consolidado
-Dado produto existente em cinco lojas
-Quando consultar estoque
-Entao sistema deve retornar quantidade de cada loja
-E estoque total consolidado
+Cenario: consulta consolidada de estoque
+  Dado que produto existe em cinco lojas
+  Quando consultar estoque multi-loja
+  Entao o sistema deve retornar estoque por loja
+  E estoque total consolidado
 
 Cenario: produto sem estoque
-Dado produto cadastrado
-E quantidade zero em todas as lojas
-Quando consultar estoque
-Entao total deve ser igual a zero
+  Dado que produto possui saldo zero em todas as lojas
+  Quando consultar estoque
+  Entao estoque total deve ser igual a zero
 
 Cenario: produto inexistente
-Dado codigo de produto invalido
-Quando consultar estoque
-Entao mensagem "Produto nao encontrado" deve ser exibida
+  Dado que produto nao existe
+  Quando consultar estoque
+  Entao sistema deve retornar "produto nao encontrado"
 
-Cenario: estoque distribuido
-Dado produto com:
-    Loja 1 = 10
-    Loja 2 = 20
-    Loja 3 = 15
-    Loja 4 = 5
-    Loja 5 = 0
-Quando consultar estoque
-Entao estoque total deve ser 50
+Cenario: consolidacao correta
+  Dado que produto possui estoque distribuido
+  Quando consultar estoque
+  Entao soma das lojas deve corresponder ao estoque total
 
 Cenario: alerta de estoque minimo
-Dado produto com estoque abaixo do minimo em uma loja
-Quando consultar estoque
-Entao sistema deve sinalizar a loja com alerta
+  Dado que uma loja possui estoque abaixo do minimo
+  Quando consultar estoque
+  Entao sistema deve sinalizar alerta
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_estoque_multi_loja():
+  1. cenario_consulta_consolidada()
+  2. cenario_sem_estoque()
+  3. cenario_produto_inexistente()
+  4. cenario_consolidacao_total()
+  5. cenario_alerta_estoque_minimo()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_consulta_consolidada():
+  dado produto_id = "PROD-001"
+
+  quando resultado =
+    consultar_estoque_multi_loja(produto_id)
+
+  entao assert resultado.estoque_total > 0
+
+Funcao cenario_sem_estoque():
+  dado produto_id = "PROD-002"
+
+  quando resultado =
+    consultar_estoque_multi_loja(produto_id)
+
+  entao assert resultado.estoque_total == 0
+
+Funcao cenario_produto_inexistente():
+  quando resultado =
+    consultar_estoque_multi_loja("INVALIDO")
+
+  entao assert resultado.motivo == "PRODUTO_NAO_ENCONTRADO"
+
+Funcao cenario_consolidacao_total():
+  quando resultado =
+    consultar_estoque_multi_loja("PROD-001")
+
+  entao assert
+    resultado.estoque_total ==
+    soma_estoques_lojas(resultado)
+
+Funcao cenario_alerta_estoque_minimo():
+  quando resultado =
+    consultar_estoque_multi_loja("PROD-003")
+
+  entao assert resultado.possui_alerta == verdadeiro
+
+Rastreabilidade:
+  src/estoque/consulta_estoque_multi_loja.txt
