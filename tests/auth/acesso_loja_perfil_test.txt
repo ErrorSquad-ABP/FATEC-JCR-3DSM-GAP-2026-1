@@ -1,0 +1,20 @@
+# Teste pseudocodigo: acesso por loja por perfil
+
+Task: T-S2-E4-02
+Historia: E4-US02
+
+Cenario: gerente da loja acessa somente a propria unidade
+  Dado que usuario GERENTE esta vinculado a "LOJA-02"
+  Quando consultar estoque da "LOJA-02"
+  Entao o sistema deve autorizar
+  E quando consultar "LOJA-01" deve negar acesso
+
+Cenario: admin acessa qualquer loja
+  Dado que usuario ADMIN autenticado esta ativo
+  Quando consultar estoque da "LOJA-01" e "LOJA-05"
+  Entao o sistema deve autorizar ambas
+
+Cenario: usuario sem vinculo nao acessa estoque
+  Dado que usuario GERENTE nao possui loja vinculada
+  Quando consultar qualquer loja
+  Entao o sistema deve retornar erro "acesso negado para loja"
