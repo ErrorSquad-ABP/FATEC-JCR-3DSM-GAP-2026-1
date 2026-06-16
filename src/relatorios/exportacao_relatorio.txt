@@ -1,0 +1,42 @@
+# Pseudocodigo: exportacao de relatorio em CSV e PDF
+
+Task: T-S2-E3-02
+Historia: E3-US02
+Camadas: Aplicacao, Infraestrutura
+
+Objetivo:
+  Exportar o relatorio consolidado em formato CSV ou PDF simulado.
+
+Caso de uso exportar_relatorio(relatorio_consolidado, formato):
+  1. Se formato nao estiver em ["CSV", "PDF"]:
+       Retornar erro "formato de exportacao invalido".
+  2. Se formato for "CSV":
+       retornar exportar_csv(relatorio_consolidado)
+  3. Se formato for "PDF":
+       retornar exportar_pdf_simulado(relatorio_consolidado)
+
+Funcao exportar_csv(relatorio):
+  1. linhas = ["loja,produto,qty"]
+  2. Para cada item em relatorio.itens:
+       Para cada loja_item em item.lojas:
+         linha = loja_item.loja_id + "," + item.produto_nome + "," + loja_item.quantidade
+         adicionar linha em linhas
+  3. conteudo_csv = juntar linhas com quebra de linha
+  4. Retornar:
+       nome_arquivo: "relatorio_estoque.csv"
+       mime_type: "text/csv"
+       conteudo: conteudo_csv
+
+Funcao exportar_pdf_simulado(relatorio):
+  1. texto = "Relatorio Consolidado de Estoque"
+  2. texto = texto + "\nTotal geral: " + relatorio.total_geral
+  3. Para cada item em relatorio.itens:
+       texto = texto + "\nProduto: " + item.produto_nome
+       texto = texto + " | total: " + item.total_por_produto
+  4. Retornar:
+       nome_arquivo: "relatorio_estoque.pdf"
+       mime_type: "application/pdf"
+       conteudo_simulado: texto
+
+Rastreabilidade dos testes:
+  tests/relatorios/exportacao_relatorio_test.txt
