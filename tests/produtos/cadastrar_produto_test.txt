@@ -1,0 +1,31 @@
+CENÁRIO: Login com credenciais válidas
+
+DADO usuário cadastrado
+QUANDO informar login e senha corretos
+ENTÃO autenticação deve ocorrer com sucesso
+E token de sessão deve ser gerado
+
+CENÁRIO: Login com senha incorreta
+
+DADO usuário cadastrado
+QUANDO informar senha inválida
+ENTÃO autenticação deve falhar
+E mensagem "Usuário ou senha inválidos" deve ser exibida
+
+CENÁRIO: Usuário inexistente
+
+DADO usuário não cadastrado
+QUANDO tentar realizar login
+ENTÃO autenticação deve falhar
+
+CENÁRIO: Acesso sem autenticação
+
+DADO usuário não autenticado
+QUANDO acessar cadastro de produtos
+ENTÃO acesso deve ser negado
+
+CENÁRIO: Logout
+
+DADO usuário autenticado
+QUANDO solicitar logout
+ENTÃO sessão deve ser encerrada
