@@ -59,3 +59,78 @@ Cenario: produto indisponivel sugere alternativa sem baixa de estoque
   E deve sugerir "Produto Teste A" como alternativa
   E nao deve baixar estoque
   E nao deve notificar o gerente
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_pedido_whatsapp_estoque_chat_baixa():
+  1. cenario_fluxo_completo_pedido_confirmado()
+  2. cenario_cancelamento_nao_baixa_estoque()
+  3. cenario_estoque_insuficiente_recusa_pedido()
+  4. cenario_confirmacao_duplicada_idempotente()
+  5. cenario_produto_indisponivel_sugere_alternativa()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_fluxo_completo_pedido_confirmado():
+  dado produto = criar_produto("PROD-001", "Produto Teste A", 10.00, "ATIVO")
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  dado cliente = criar_cliente("Cliente Teste", "(11) 99999-0000")
+  dado gerente = criar_gerente("LOJA-01", "(11) 98888-0000")
+  quando resposta_consulta = webhook_whatsapp_receber(cliente, "tem Produto Teste A?")
+  entao assert resposta_consulta.contem("Produto Teste A")
+  entao assert resposta_consulta.contem("15 unidade(s)")
+  quando resposta_pedido = webhook_whatsapp_receber(cliente, "quero 2 Produto Teste A")
+  entao assert resposta_pedido.contem("resumo do pedido")
+  quando resposta_confirmacao = webhook_whatsapp_receber(cliente, "confirmar")
+  entao assert pedido("PED-001").status == "CONFIRMADO"
+  entao assert estoque_saldo("PROD-001", "LOJA-01") == 13
+  entao assert movimentacao_existe("PED-001", "SAIDA")
+  entao assert notificacao_gerente_existe("PED-001", "ENVIADA")
+  entao assert notificacao_gerente("PED-001").mensagem.contem("Cliente Teste")
+
+Funcao cenario_cancelamento_nao_baixa_estoque():
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  dado pedido = criar_pedido_pendente("PED-002", "PROD-001", 2)
+  quando resposta = webhook_whatsapp_receber(pedido.cliente, "cancelar")
+  entao assert pedido.status == "CANCELADO"
+  entao assert estoque_saldo("PROD-001", "LOJA-01") == 15
+  entao assert nao_existe_movimentacao("PED-002", "SAIDA")
+  entao assert nao_existe_notificacao_gerente("PED-002")
+
+Funcao cenario_estoque_insuficiente_recusa_pedido():
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  quando resposta = webhook_whatsapp_receber(cliente_padrao(), "quero 100 Produto Teste A")
+  entao assert resposta.contem("nao ha estoque suficiente")
+  entao assert repositorio_pedidos.nao_existe_confirmado_para("PROD-001")
+  entao assert estoque_saldo("PROD-001", "LOJA-01") == 15
+  entao assert repositorio_notificacoes.total() == 0
+
+Funcao cenario_confirmacao_duplicada_idempotente():
+  dado pedido = criar_pedido_confirmado("PED-001", "PROD-001", 2)
+  dado movimentacao = criar_movimentacao_saida("PED-001", "PROD-001", 2)
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 13)
+  quando resposta = webhook_whatsapp_receber(pedido.cliente, "confirmar")
+  entao assert resposta.contem("pedido ja confirmado")
+  entao assert estoque_saldo("PROD-001", "LOJA-01") == 13
+  entao assert contar_movimentacoes("PED-001", "SAIDA") == 1
+  entao assert contar_notificacoes("PED-001") == 1
+
+Funcao cenario_produto_indisponivel_sugere_alternativa():
+  dado produto_zerado = criar_produto("PROD-002", "Produto Zerado", 8.00, "ATIVO")
+  dado estoque_zerado = criar_estoque("PROD-002", "LOJA-01", 0)
+  dado alternativa = criar_produto("PROD-001", "Produto Teste A", 10.00, "ATIVO")
+  dado estoque_alternativa = criar_estoque("PROD-001", "LOJA-01", 15)
+  quando resposta = webhook_whatsapp_receber(cliente_padrao(), "quero Produto Zerado")
+  entao assert resposta.contem("Produto Zerado")
+  entao assert resposta.contem("indisponivel")
+  entao assert resposta.contem("Produto Teste A")
+  entao assert repositorio_movimentacoes.total() == 0
+  entao assert repositorio_notificacoes.total() == 0
+
+Rastreabilidade:
+  src/chatbot/webhook_whatsapp.txt
+  src/chatbot/consulta_produto_categoria.txt
+  src/chatbot/integracao_estoque_chatbot.txt
+  src/chatbot/notificacao_whatsapp_gerente.txt
+  src/chatbot/resumo_dados_cliente.txt
