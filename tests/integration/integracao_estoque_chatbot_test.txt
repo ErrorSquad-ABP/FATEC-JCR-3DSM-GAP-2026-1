@@ -20,3 +20,44 @@ Cenario: erro no estoque nao confirma pedido
   Quando o chatbot tentar confirmar o pedido
   Entao o pedido deve permanecer pendente
   E o chatbot deve informar indisponibilidade
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_integracao_estoque_chatbot():
+  1. cenario_consulta_disponibilidade_tempo_real()
+  2. cenario_confirmacao_dispara_baixa()
+  3. cenario_erro_estoque_mantem_pedido_pendente()
+  4. retornar "todos os cenarios executados"
+
+Funcao cenario_consulta_disponibilidade_tempo_real():
+  dado produto = criar_produto("PROD-001", "Produto Teste A")
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  quando disponibilidade = consultar_disponibilidade_produto("PROD-001", "LOJA-01")
+  entao assert disponibilidade.total_disponivel == 15
+  quando resposta = chatbot_responder_disponibilidade(produto, disponibilidade)
+  entao assert resposta.contem("Produto Teste A")
+  entao assert resposta.contem("15")
+
+Funcao cenario_confirmacao_dispara_baixa():
+  dado pedido = criar_pedido_pendente("PED-001", "LOJA-01")
+  dado itens = [ { produto_id: "PROD-001", quantidade: 2 } ]
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  quando resultado = confirmar_baixa_estoque("PED-001", itens, "LOJA-01")
+  entao assert resultado.status == "SUCESSO"
+  entao assert pedido.status == "CONFIRMADO"
+  entao assert estoque_saldo("PROD-001", "LOJA-01") == 13
+
+Funcao cenario_erro_estoque_mantem_pedido_pendente():
+  dado pedido = criar_pedido_pendente("PED-002", "LOJA-01")
+  dado itens = [ { produto_id: "PROD-001", quantidade: 100 } ]
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  quando resultado = confirmar_baixa_estoque("PED-002", itens, "LOJA-01")
+  entao assert resultado.status == "FALHA"
+  entao assert resultado.motivo_erro == "saldo insuficiente"
+  entao assert pedido.status == "PENDENTE"
+  entao assert chatbot_ultima_resposta().contem("indisponibilidade")
+
+Rastreabilidade:
+  src/chatbot/integracao_estoque_chatbot.txt

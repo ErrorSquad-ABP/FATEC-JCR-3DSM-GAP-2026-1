@@ -1,0 +1,101 @@
+# Teste pseudocodigo: resumo com dados do cliente
+
+Task: T-S3-C4-02
+Historia: E4-US02
+
+Cenario: gerar resumo de pedido confirmado com dados do cliente
+  Dado que o pedido "PED-001" existe com status "CONFIRMADO"
+  E o cliente do pedido se chama "Cliente Teste"
+  E o telefone WhatsApp do cliente e "(11) 99999-0000"
+  E o pedido possui 2 unidade(s) de "Produto Teste A"
+  Quando gerar o resumo do pedido para o gerente
+  Entao a mensagem deve conter "Pedido confirmado: PED-001"
+  E deve conter "Cliente: Cliente Teste"
+  E deve conter "Telefone: (11) 99999-0000"
+  E deve conter "2x Produto Teste A"
+  E deve conter o valor total do pedido
+
+Cenario: rejeitar resumo de pedido inexistente
+  Dado que nao existe pedido com id "PED-404"
+  Quando gerar o resumo do pedido para o gerente
+  Entao deve retornar erro "pedido nao encontrado"
+
+Cenario: rejeitar resumo de pedido nao confirmado
+  Dado que o pedido "PED-002" existe com status "PENDENTE"
+  Quando gerar o resumo do pedido para o gerente
+  Entao deve retornar erro "pedido nao confirmado"
+
+Cenario: rejeitar resumo sem cliente
+  Dado que o pedido "PED-003" existe com status "CONFIRMADO"
+  E o cliente vinculado ao pedido nao existe
+  Quando gerar o resumo do pedido para o gerente
+  Entao deve retornar erro "cliente nao encontrado"
+
+Cenario: rejeitar resumo sem telefone do cliente
+  Dado que o pedido "PED-004" existe com status "CONFIRMADO"
+  E o cliente vinculado ao pedido nao possui telefone WhatsApp
+  Quando gerar o resumo do pedido para o gerente
+  Entao deve retornar erro "telefone do cliente e obrigatorio"
+
+Cenario: rejeitar resumo de pedido sem itens
+  Dado que o pedido "PED-005" existe com status "CONFIRMADO"
+  E o cliente possui telefone WhatsApp configurado
+  E o pedido nao possui itens
+  Quando gerar o resumo do pedido para o gerente
+  Entao deve retornar erro "pedido sem itens"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_resumo_dados_cliente():
+  1. cenario_resumo_confirmado_com_cliente()
+  2. cenario_pedido_inexistente()
+  3. cenario_pedido_nao_confirmado()
+  4. cenario_cliente_nao_encontrado()
+  5. cenario_cliente_sem_telefone()
+  6. cenario_pedido_sem_itens()
+  7. retornar "todos os cenarios executados"
+
+Funcao cenario_resumo_confirmado_com_cliente():
+  dado cliente = criar_cliente("CLI-001", "Cliente Teste", "(11) 99999-0000")
+  dado pedido = criar_pedido("PED-001", "CLI-001", "LOJA-01", "CONFIRMADO", 20.00)
+  dado item = criar_item_pedido("PED-001", "PROD-001", "Produto Teste A", 2, 10.00)
+  quando mensagem = gerar_resumo_pedido_para_gerente("PED-001")
+  entao assert mensagem.contem("Pedido confirmado: PED-001")
+  entao assert mensagem.contem("Cliente: Cliente Teste")
+  entao assert mensagem.contem("Telefone: (11) 99999-0000")
+  entao assert mensagem.contem("2x Produto Teste A")
+  entao assert mensagem.contem("Total: R$ 20,00")
+
+Funcao cenario_pedido_inexistente():
+  dado repositorio_pedidos.sem_pedido("PED-404")
+  quando resultado = gerar_resumo_pedido_para_gerente("PED-404")
+  entao assert resultado.erro == "pedido nao encontrado"
+
+Funcao cenario_pedido_nao_confirmado():
+  dado pedido = criar_pedido("PED-002", "CLI-001", "LOJA-01", "PENDENTE", 20.00)
+  quando resultado = gerar_resumo_pedido_para_gerente("PED-002")
+  entao assert resultado.erro == "pedido nao confirmado"
+
+Funcao cenario_cliente_nao_encontrado():
+  dado pedido = criar_pedido("PED-003", "CLI-404", "LOJA-01", "CONFIRMADO", 20.00)
+  dado repositorio_clientes.sem_cliente("CLI-404")
+  quando resultado = gerar_resumo_pedido_para_gerente("PED-003")
+  entao assert resultado.erro == "cliente nao encontrado"
+
+Funcao cenario_cliente_sem_telefone():
+  dado cliente = criar_cliente("CLI-002", "Cliente Sem Telefone", vazio)
+  dado pedido = criar_pedido("PED-004", "CLI-002", "LOJA-01", "CONFIRMADO", 20.00)
+  quando resultado = gerar_resumo_pedido_para_gerente("PED-004")
+  entao assert resultado.erro == "telefone do cliente e obrigatorio"
+
+Funcao cenario_pedido_sem_itens():
+  dado cliente = criar_cliente("CLI-003", "Cliente Teste", "(11) 99999-0000")
+  dado pedido = criar_pedido("PED-005", "CLI-003", "LOJA-01", "CONFIRMADO", 20.00)
+  dado repositorio_itens_pedido.sem_itens("PED-005")
+  quando resultado = gerar_resumo_pedido_para_gerente("PED-005")
+  entao assert resultado.erro == "pedido sem itens"
+
+Rastreabilidade:
+  src/chatbot/resumo_dados_cliente.txt

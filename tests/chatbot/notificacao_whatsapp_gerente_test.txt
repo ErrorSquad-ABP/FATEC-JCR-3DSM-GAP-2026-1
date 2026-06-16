@@ -58,3 +58,76 @@ Cenario: registrar falha quando gateway WhatsApp nao enviar mensagem
   Quando o sistema tentar enviar a notificacao
   Entao deve retornar erro "falha ao enviar notificacao"
   E deve registrar a notificacao com status "ERRO_ENVIO"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_notificacao_whatsapp_gerente():
+  1. cenario_notificar_apos_confirmacao()
+  2. cenario_nao_notificar_pedido_nao_confirmado()
+  3. cenario_nao_notificar_pedido_cancelado()
+  4. cenario_mensagem_contem_resumo_cliente()
+  5. cenario_gerente_nao_encontrado()
+  6. cenario_telefone_gerente_nao_configurado()
+  7. cenario_falha_gateway_registrada()
+  8. retornar "todos os cenarios executados"
+
+Funcao cenario_notificar_apos_confirmacao():
+  dado pedido = criar_pedido("PED-001", "LOJA-01", "CONFIRMADO")
+  dado baixa_estoque = criar_baixa_concluida("PED-001")
+  dado gerente = criar_gerente("GER-001", "LOJA-01", "(11) 98888-0000")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado == "sucesso"
+  entao assert gateway_whatsapp.foi_chamado_com("(11) 98888-0000")
+  entao assert repositorio_notificacoes.existe("PED-001", "ENVIADA")
+
+Funcao cenario_nao_notificar_pedido_nao_confirmado():
+  dado pedido = criar_pedido("PED-002", "LOJA-01", "EM_RESUMO")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "pedido nao confirmado"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+  entao assert repositorio_notificacoes.nao_existe_status("PED-002", "ENVIADA")
+
+Funcao cenario_nao_notificar_pedido_cancelado():
+  dado pedido = criar_pedido("PED-003", "LOJA-01", "CANCELADO")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "pedido nao confirmado"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_mensagem_contem_resumo_cliente():
+  dado pedido = criar_pedido_confirmado_com_cliente("PED-001", "LOJA-01", "Cliente Teste", "(11) 99999-0000")
+  dado pedido.itens = [ { produto_nome: "Produto Teste A", quantidade: 2, preco_unitario: 10.00 } ]
+  dado gerente = criar_gerente("GER-001", "LOJA-01", "(11) 98888-0000")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado == "sucesso"
+  entao assert gateway_whatsapp.ultima_mensagem().contem("Pedido confirmado: PED-001")
+  entao assert gateway_whatsapp.ultima_mensagem().contem("Cliente: Cliente Teste")
+  entao assert gateway_whatsapp.ultima_mensagem().contem("Telefone: (11) 99999-0000")
+  entao assert gateway_whatsapp.ultima_mensagem().contem("2x Produto Teste A")
+
+Funcao cenario_gerente_nao_encontrado():
+  dado pedido = criar_pedido("PED-004", "LOJA-99", "CONFIRMADO")
+  dado repositorio_usuarios.sem_gerente_ativo("LOJA-99")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "gerente da loja nao encontrado"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_telefone_gerente_nao_configurado():
+  dado pedido = criar_pedido("PED-005", "LOJA-01", "CONFIRMADO")
+  dado gerente = criar_gerente("GER-001", "LOJA-01", vazio)
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "telefone do gerente nao configurado"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_falha_gateway_registrada():
+  dado pedido = criar_pedido("PED-006", "LOJA-01", "CONFIRMADO")
+  dado gerente = criar_gerente("GER-001", "LOJA-01", "(11) 98888-0000")
+  dado gateway_whatsapp.configurar_retorno("erro")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "falha ao enviar notificacao"
+  entao assert repositorio_notificacoes.existe("PED-006", "ERRO_ENVIO")
+
+Rastreabilidade:
+  src/chatbot/notificacao_whatsapp_gerente.txt
+  src/chatbot/resumo_dados_cliente.txt

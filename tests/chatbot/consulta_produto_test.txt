@@ -39,3 +39,55 @@ Cenario: responder categoria sem produtos disponiveis
   E todos os produtos da categoria "Limpeza" possuem saldo 0 na "LOJA-01"
   Quando o cliente enviar "limpeza"
   Entao o chatbot deve responder "Nao ha produtos disponiveis nessa categoria no momento."
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_consulta_produto_chatbot():
+  1. cenario_produto_encontrado_com_disponibilidade()
+  2. cenario_produto_nao_encontrado()
+  3. cenario_produto_sem_estoque()
+  4. cenario_listar_produtos_por_categoria()
+  5. cenario_categoria_sem_produtos_disponiveis()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_produto_encontrado_com_disponibilidade():
+  dado produto = { id: "PROD-001", nome: "Produto Teste A", preco: 10.00, status: "ATIVO" }
+  dado estoque = { produto_id: "PROD-001", loja_id: "LOJA-01", quantidade_atual: 15 }
+  quando resposta = consultar_produto_chat("tem Produto Teste A?", "LOJA-01")
+  entao assert resposta.contem("Produto Teste A")
+  entao assert resposta.contem("R$ 10,00")
+  entao assert resposta.contem("15 unidade(s)")
+
+Funcao cenario_produto_nao_encontrado():
+  dado repositorio_produtos.sem_produto_ativo("Produto Inexistente")
+  quando resposta = consultar_produto_chat("tem Produto Inexistente?", "LOJA-01")
+  entao assert resposta == "Nao encontrei esse produto. Pode tentar outro nome?"
+  entao assert servico_estoque.nao_registrou_baixa()
+
+Funcao cenario_produto_sem_estoque():
+  dado produto = { id: "PROD-002", nome: "Produto Zerado", preco: 8.00, status: "ATIVO" }
+  dado estoque = { produto_id: "PROD-002", loja_id: "LOJA-01", quantidade_atual: 0 }
+  quando resposta = consultar_produto_chat("tem Produto Zerado?", "LOJA-01")
+  entao assert resposta.contem("Produto Zerado")
+  entao assert resposta.contem("sem estoque")
+  entao assert resposta.nao_contem("confirmar pedido")
+
+Funcao cenario_listar_produtos_por_categoria():
+  dado categoria = "Bebidas"
+  dado lista_produtos = criar_produtos_ativos(categoria, 6)
+  dado estoque_disponivel = criar_saldos_disponiveis("LOJA-01", lista_produtos, 5)
+  quando resposta = listar_produtos_categoria_chat("bebidas", "LOJA-01")
+  entao assert contar_itens_listados(resposta) <= 5
+  entao assert todos_itens_possuem_nome_preco_quantidade(resposta)
+
+Funcao cenario_categoria_sem_produtos_disponiveis():
+  dado categoria = "Limpeza"
+  dado lista_produtos = criar_produtos_ativos(categoria, 3)
+  dado estoque_zerado = criar_saldos_zerados("LOJA-01", lista_produtos)
+  quando resposta = listar_produtos_categoria_chat("limpeza", "LOJA-01")
+  entao assert resposta == "Nao ha produtos disponiveis nessa categoria no momento."
+
+Rastreabilidade:
+  src/chatbot/consulta_produto_categoria.txt

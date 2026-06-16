@@ -1,0 +1,93 @@
+# Teste pseudocodigo: notificacao WhatsApp ao gerente
+
+Task: T-S3-C4-01
+Historia: E4-US01
+
+Cenario: enviar notificacao para gerente apos pedido confirmado
+  Dado que o pedido "PED-001" existe com status "CONFIRMADO"
+  E a baixa de estoque foi concluida com sucesso
+  E existe gerente ativo vinculado a "LOJA-01"
+  E o gerente possui telefone WhatsApp configurado
+  Quando o servico notificar_gerente_pedido_confirmado processar o pedido
+  Entao deve enviar mensagem WhatsApp ao gerente da loja
+  E deve registrar notificacao com status "ENVIADA"
+
+Cenario: rejeitar notificacao de pedido nao confirmado
+  Dado que o pedido "PED-002" existe com status "PENDENTE"
+  Quando o servico tentar notificar o gerente
+  Entao deve retornar erro "pedido nao confirmado"
+  E nao deve chamar o gateway WhatsApp
+
+Cenario: rejeitar quando gerente da loja nao for encontrado
+  Dado que o pedido "PED-003" existe com status "CONFIRMADO"
+  E nao existe gerente ativo vinculado a "LOJA-99"
+  Quando o servico tentar notificar o gerente da "LOJA-99"
+  Entao deve retornar erro "gerente da loja nao encontrado"
+  E nao deve registrar notificacao enviada
+
+Cenario: rejeitar quando telefone WhatsApp do gerente estiver vazio
+  Dado que o pedido "PED-004" existe com status "CONFIRMADO"
+  E existe gerente ativo da "LOJA-01" sem telefone WhatsApp
+  Quando o servico tentar notificar o gerente
+  Entao deve retornar erro "telefone do gerente nao configurado"
+  E nao deve chamar o gateway WhatsApp
+
+Cenario: registrar erro quando gateway WhatsApp falhar
+  Dado que o pedido "PED-005" existe com status "CONFIRMADO"
+  E existe gerente ativo com telefone WhatsApp configurado
+  E o gateway WhatsApp retorna erro
+  Quando o servico tentar enviar a notificacao
+  Entao deve retornar erro "falha ao enviar notificacao"
+  E deve registrar notificacao com status "ERRO_ENVIO"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_notificacao_pedido_confirmado():
+  1. cenario_envio_apos_confirmacao()
+  2. cenario_rejeita_pedido_nao_confirmado()
+  3. cenario_rejeita_sem_gerente()
+  4. cenario_rejeita_sem_telefone_gerente()
+  5. cenario_registra_falha_gateway()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_envio_apos_confirmacao():
+  dado pedido = criar_pedido("PED-001", "LOJA-01", "CONFIRMADO")
+  dado baixa = criar_baixa_estoque("PED-001", "CONCLUIDA")
+  dado gerente = criar_gerente("GER-001", "LOJA-01", "(11) 98888-0000", "ATIVO")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado == "sucesso"
+  entao assert gateway_whatsapp.foi_chamado_com("(11) 98888-0000")
+  entao assert repositorio_notificacoes.existe("PED-001", "ENVIADA")
+
+Funcao cenario_rejeita_pedido_nao_confirmado():
+  dado pedido = criar_pedido("PED-002", "LOJA-01", "PENDENTE")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "pedido nao confirmado"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_rejeita_sem_gerente():
+  dado pedido = criar_pedido("PED-003", "LOJA-99", "CONFIRMADO")
+  dado repositorio_usuarios.sem_gerente_ativo("LOJA-99")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "gerente da loja nao encontrado"
+  entao assert repositorio_notificacoes.nao_existe_status("PED-003", "ENVIADA")
+
+Funcao cenario_rejeita_sem_telefone_gerente():
+  dado pedido = criar_pedido("PED-004", "LOJA-01", "CONFIRMADO")
+  dado gerente = criar_gerente("GER-001", "LOJA-01", vazio, "ATIVO")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "telefone do gerente nao configurado"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_registra_falha_gateway():
+  dado pedido = criar_pedido("PED-005", "LOJA-01", "CONFIRMADO")
+  dado gerente = criar_gerente("GER-001", "LOJA-01", "(11) 98888-0000", "ATIVO")
+  dado gateway_whatsapp.configurar_retorno("erro")
+  quando resultado = notificar_gerente_pedido_confirmado(pedido)
+  entao assert resultado.erro == "falha ao enviar notificacao"
+  entao assert repositorio_notificacoes.existe("PED-005", "ERRO_ENVIO")
+
+Rastreabilidade:
+  src/chatbot/notificacao_whatsapp_gerente.txt

@@ -1,0 +1,89 @@
+# Teste pseudocodigo: consulta e listagem por categoria
+
+Task: T-S3-C1-02
+Historia: E1-US01, E1-US02
+
+Cenario: consultar produto disponivel por nome aproximado
+  Dado que o produto "PROD-001" existe com nome "Produto Teste A"
+  E o produto esta ATIVO e custa R$ 10,00
+  E o estoque da "LOJA-01" possui 15 unidade(s)
+  Quando o cliente enviar "quanto custa Produto Teste A?"
+  Entao o chatbot deve responder nome, preco e quantidade disponivel
+
+Cenario: informar produto nao encontrado
+  Dado que nao existe produto ativo com nome aproximado "Produto Inexistente"
+  Quando o cliente enviar "tem Produto Inexistente?"
+  Entao o chatbot deve responder "Nao encontrei esse produto. Pode tentar outro nome?"
+  E nao deve montar pedido
+
+Cenario: informar produto sem estoque
+  Dado que o produto "PROD-002" existe com nome "Produto Zerado"
+  E o produto esta ATIVO
+  E o estoque da "LOJA-01" possui 0 unidade(s)
+  Quando o cliente enviar "tem Produto Zerado?"
+  Entao o chatbot deve responder que o produto esta sem estoque
+  E nao deve oferecer confirmacao de pedido
+
+Cenario: listar ate cinco produtos disponiveis por categoria
+  Dado que a categoria "Bebidas" possui 6 produtos ativos
+  E 5 produtos possuem saldo maior que zero na "LOJA-01"
+  Quando o cliente enviar "bebidas"
+  Entao o chatbot deve listar ate 5 produtos disponiveis
+  E cada item deve conter nome, preco e quantidade disponivel
+
+Cenario: informar categoria sem produtos disponiveis
+  Dado que a categoria "Limpeza" possui produtos ativos
+  E todos possuem saldo 0 na "LOJA-01"
+  Quando o cliente enviar "limpeza"
+  Entao o chatbot deve responder "Nao ha produtos disponiveis nessa categoria no momento."
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_consulta_produto_categoria():
+  1. cenario_consulta_produto_disponivel()
+  2. cenario_produto_nao_encontrado()
+  3. cenario_produto_sem_estoque()
+  4. cenario_listar_categoria_com_limite()
+  5. cenario_categoria_sem_disponibilidade()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_consulta_produto_disponivel():
+  dado produto = criar_produto("PROD-001", "Produto Teste A", "Teste", 10.00, "ATIVO")
+  dado estoque = criar_estoque("PROD-001", "LOJA-01", 15)
+  quando resposta = consultar_produto_chat("quanto custa Produto Teste A?", "LOJA-01")
+  entao assert resposta.contem("Produto Teste A")
+  entao assert resposta.contem("R$ 10,00")
+  entao assert resposta.contem("15 unidade(s)")
+
+Funcao cenario_produto_nao_encontrado():
+  dado repositorio_produtos.sem_produto_ativo("Produto Inexistente")
+  quando resposta = consultar_produto_chat("tem Produto Inexistente?", "LOJA-01")
+  entao assert resposta == "Nao encontrei esse produto. Pode tentar outro nome?"
+  entao assert repositorio_pedidos.total_confirmados() == 0
+
+Funcao cenario_produto_sem_estoque():
+  dado produto = criar_produto("PROD-002", "Produto Zerado", "Teste", 8.00, "ATIVO")
+  dado estoque = criar_estoque("PROD-002", "LOJA-01", 0)
+  quando resposta = consultar_produto_chat("tem Produto Zerado?", "LOJA-01")
+  entao assert resposta.contem("Produto Zerado")
+  entao assert resposta.contem("sem estoque")
+  entao assert resposta.nao_contem("confirmar pedido")
+
+Funcao cenario_listar_categoria_com_limite():
+  dado produtos = criar_produtos_categoria("Bebidas", 6, "ATIVO")
+  dado estoque_disponivel_para_primeiros(produtos, "LOJA-01", 5)
+  quando resposta = listar_produtos_categoria_chat("bebidas", "LOJA-01")
+  entao assert resposta.contem("Produtos disponiveis em Bebidas")
+  entao assert contar_itens_listados(resposta) <= 5
+  entao assert todos_itens_possuem_nome_preco_quantidade(resposta)
+
+Funcao cenario_categoria_sem_disponibilidade():
+  dado produtos = criar_produtos_categoria("Limpeza", 3, "ATIVO")
+  dado estoque_zerado_para_todos(produtos, "LOJA-01")
+  quando resposta = listar_produtos_categoria_chat("limpeza", "LOJA-01")
+  entao assert resposta == "Nao ha produtos disponiveis nessa categoria no momento."
+
+Rastreabilidade:
+  src/chatbot/consulta_produto_categoria.txt

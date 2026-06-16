@@ -1,0 +1,95 @@
+# Teste pseudocodigo: webhook WhatsApp
+
+Task: T-S3-C1-01
+Historia: E1-US01, E1-US02, E2-US01
+
+Cenario: processar mensagem valida recebida pelo WhatsApp
+  Dado que o payload possui mensagem_id "WPP-IN-001"
+  E telefone_cliente "(11) 99999-0000"
+  E texto "tem Produto Teste A?"
+  Quando o endpoint webhook WhatsApp receber o payload
+  Entao deve registrar a mensagem de entrada com status "RECEBIDA"
+  E deve criar ou atualizar a sessao do cliente
+  E deve enviar uma resposta ao telefone do cliente
+  E deve retornar status "200 OK"
+
+Cenario: rejeitar payload sem telefone do cliente
+  Dado que o payload possui mensagem_id "WPP-IN-002"
+  E telefone_cliente vazio
+  E texto "bebidas"
+  Quando o endpoint webhook WhatsApp receber o payload
+  Entao deve retornar erro "telefone do cliente e obrigatorio"
+  E nao deve enviar resposta pelo gateway WhatsApp
+
+Cenario: rejeitar payload sem texto da mensagem
+  Dado que o payload possui mensagem_id "WPP-IN-003"
+  E telefone_cliente "(11) 99999-0000"
+  E texto vazio
+  Quando o endpoint webhook WhatsApp receber o payload
+  Entao deve retornar erro "texto da mensagem e obrigatorio"
+  E nao deve registrar mensagem de saida
+
+Cenario: ignorar mensagem duplicada por id externo
+  Dado que ja existe mensagem recebida com mensagem_id "WPP-IN-004"
+  Quando o endpoint webhook WhatsApp receber novamente "WPP-IN-004"
+  Entao deve retornar "mensagem ja processada"
+  E nao deve chamar o roteador do chatbot novamente
+  E nao deve enviar segunda resposta ao cliente
+
+Cenario: registrar falha quando gateway nao enviar resposta
+  Dado que o payload valido possui mensagem_id "WPP-IN-005"
+  E o gateway WhatsApp retorna falha de envio
+  Quando o sistema processar a mensagem recebida
+  Entao deve retornar erro "falha ao enviar mensagem"
+  E deve registrar mensagem de saida com status "ERRO_ENVIO"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_webhook_whatsapp():
+  1. cenario_payload_valido_processado()
+  2. cenario_payload_sem_telefone()
+  3. cenario_payload_sem_texto()
+  4. cenario_mensagem_duplicada()
+  5. cenario_falha_gateway_resposta()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_payload_valido_processado():
+  dado payload = criar_payload("WPP-IN-001", "(11) 99999-0000", "Cliente Teste", "tem Produto Teste A?")
+  dado gateway_whatsapp.configurar_retorno("sucesso")
+  quando resultado = endpoint_webhook_whatsapp(payload)
+  entao assert resultado.status == "200 OK"
+  entao assert repositorio_mensagens.existe("WPP-IN-001", "ENTRADA", "RECEBIDA")
+  entao assert repositorio_sessoes.buscar_por_telefone("(11) 99999-0000") != vazio
+  entao assert gateway_whatsapp.foi_chamado_com("(11) 99999-0000")
+
+Funcao cenario_payload_sem_telefone():
+  dado payload = criar_payload("WPP-IN-002", vazio, "Cliente Teste", "bebidas")
+  quando resultado = endpoint_webhook_whatsapp(payload)
+  entao assert resultado.erro == "telefone do cliente e obrigatorio"
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_payload_sem_texto():
+  dado payload = criar_payload("WPP-IN-003", "(11) 99999-0000", "Cliente Teste", vazio)
+  quando resultado = endpoint_webhook_whatsapp(payload)
+  entao assert resultado.erro == "texto da mensagem e obrigatorio"
+  entao assert repositorio_mensagens.nao_existe_saida_para("WPP-IN-003")
+
+Funcao cenario_mensagem_duplicada():
+  dado repositorio_mensagens.salvar(criar_mensagem_entrada("WPP-IN-004"))
+  dado payload = criar_payload("WPP-IN-004", "(11) 99999-0000", "Cliente Teste", "tem arroz?")
+  quando resultado = endpoint_webhook_whatsapp(payload)
+  entao assert resultado.mensagem == "mensagem ja processada"
+  entao assert roteador_chatbot.total_chamadas() == 0
+  entao assert gateway_whatsapp.total_chamadas() == 0
+
+Funcao cenario_falha_gateway_resposta():
+  dado payload = criar_payload("WPP-IN-005", "(11) 99999-0000", "Cliente Teste", "ajuda")
+  dado gateway_whatsapp.configurar_retorno("erro")
+  quando resultado = endpoint_webhook_whatsapp(payload)
+  entao assert resultado.erro == "falha ao enviar mensagem"
+  entao assert repositorio_mensagens.existe_saida_com_status("ERRO_ENVIO")
+
+Rastreabilidade:
+  src/chatbot/webhook_whatsapp.txt
