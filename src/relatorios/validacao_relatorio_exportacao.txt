@@ -1,0 +1,19 @@
+# Pseudocodigo: validacao de consistencia relatorio/exportacao
+
+Task: T-S2-E3-03
+Historias: E3-US01, E3-US02
+Camada: Aplicacao
+
+Objetivo:
+  Garantir que os totais do relatorio consolidado sejam mantidos em qualquer formato de exportacao.
+
+Funcao validar_consistencia_exportacao(relatorio, artefato_exportado):
+  1. Se relatorio.total_geral for vazio:
+       Retornar erro "relatorio invalido para exportacao".
+  2. extrair_total = parser_exportacao.buscar_total(artefato_exportado)
+  3. Se extrair_total for diferente de relatorio.total_geral:
+       Retornar erro "inconsistencia entre relatorio e exportacao".
+  4. Retornar sucesso.
+
+Rastreabilidade dos testes:
+  tests/relatorios/relatorio_exportacao_integrado_test.txt

@@ -1,0 +1,52 @@
+# Teste pseudocodigo: relatorio e exportacao integrados
+
+Task: T-S2-E3-03
+Historias: E3-US01, E3-US02
+
+Cenario: gerar relatorio e exportar CSV no mesmo fluxo
+  Dado que o consolidado foi gerado com total_geral maior que zero
+  Quando exportar em CSV
+  Entao o arquivo deve conter cabecalho "loja,produto,qty"
+  E deve conter ao menos uma linha de dados
+
+Cenario: gerar relatorio e exportar PDF no mesmo fluxo
+  Dado que o consolidado foi gerado com total_geral maior que zero
+  Quando exportar em PDF
+  Entao o conteudo deve conter "Relatorio Consolidado de Estoque"
+  E deve conter "Total geral"
+
+Cenario: consistencia entre consolidado e exportacao
+  Dado que o relatorio consolidado possui total_geral 120
+  Quando exportar em CSV e PDF
+  Entao ambos os formatos devem refletir o mesmo total consolidado
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_relatorio_exportacao():
+  1. cenario_csv()
+  2. cenario_pdf()
+  3. cenario_consistencia_total()
+  4. retornar "cenarios finalizados"
+
+Funcao cenario_csv():
+  dado relatorio.total_geral = 120
+  quando arquivo = exportar_relatorio(relatorio, "CSV")
+  entao assert arquivo.conteudo contem "loja,produto,qty"
+
+Funcao cenario_pdf():
+  dado relatorio.total_geral = 120
+  quando arquivo = exportar_relatorio(relatorio, "PDF")
+  entao assert arquivo.conteudo_simulado contem "Relatorio Consolidado de Estoque"
+  entao assert arquivo.conteudo_simulado contem "Total geral"
+
+Funcao cenario_consistencia_total():
+  dado relatorio.total_geral = 120
+  quando csv = exportar_relatorio(relatorio, "CSV")
+  quando pdf = exportar_relatorio(relatorio, "PDF")
+  entao assert validar_consistencia_exportacao(relatorio, csv) == "sucesso"
+  entao assert validar_consistencia_exportacao(relatorio, pdf) == "sucesso"
+
+Rastreabilidade:
+  src/relatorios/validacao_relatorio_exportacao.txt
