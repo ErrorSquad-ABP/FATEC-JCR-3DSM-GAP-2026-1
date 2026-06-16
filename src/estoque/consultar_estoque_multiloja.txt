@@ -1,0 +1,25 @@
+CASO_DE_USO: Consultar Estoque Multi-Loja
+
+ENTRADA:
+    id_produto
+
+PROCESSO:
+    localizar produto
+
+    SE produto_nao_encontrado
+        RETORNAR "Produto não encontrado"
+
+    PARA CADA loja
+        consultar quantidade_em_estoque
+
+        adicionar resultado à lista
+
+    calcular estoque_total
+
+SAÍDA:
+    Loja 1 -> quantidade
+    Loja 2 -> quantidade
+    Loja 3 -> quantidade
+    Loja 4 -> quantidade
+    Loja 5 -> quantidade
+    Estoque Total -> soma das quantidades

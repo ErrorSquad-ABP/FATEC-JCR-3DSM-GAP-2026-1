@@ -1,0 +1,55 @@
+CASO_DE_USO: Cadastrar Loja
+
+ENTRADA:
+    nome
+    endereco
+
+PROCESSO:
+    validar dados
+
+    criar Loja
+
+    salvar Loja
+
+SAÍDA:
+    "Loja cadastrada com sucesso"
+
+CASO_DE_USO: Consultar Loja
+
+ENTRADA:
+    id_loja
+
+PROCESSO:
+    localizar loja
+
+SAÍDA:
+    dados da loja
+
+CASO_DE_USO: Atualizar Loja
+
+ENTRADA:
+    id_loja
+    novos_dados
+
+PROCESSO:
+    localizar loja
+
+    atualizar dados
+
+    salvar alterações
+
+SAÍDA:
+    "Loja atualizada com sucesso"
+
+CASO_DE_USO: Excluir Loja
+
+ENTRADA:
+    id_loja
+
+PROCESSO:
+    localizar loja
+
+    remover loja
+
+SAÍDA:
+    "Loja removida com sucesso"
