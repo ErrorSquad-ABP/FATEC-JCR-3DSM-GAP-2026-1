@@ -1,0 +1,434 @@
+# Pseudocodigo: validacao de disponibilidade do pedido
+
+Task: T-S3-C3-01
+Historia: E3-US01, E3-US03
+Camadas: Aplicacao, Dominio, Infraestrutura
+Fonte: docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md
+
+Objetivo:
+  Descrever a validacao de disponibilidade de estoque em tempo real durante o
+  fluxo de pedido do chatbot WhatsApp.
+
+  Esta validacao garante que o pedido so avance quando produto, loja e
+  quantidade forem validos e houver saldo suficiente para a quantidade
+  solicitada.
+
+---
+
+Entrada:
+  pedido
+  produto_id
+  loja_id
+  quantidade_solicitada
+
+Saida:
+  resultado_disponibilidade
+  mensagem para o cliente
+  pode_avancar
+  deve_sugerir_alternativas
+
+Saidas de erro:
+  "pedido nao informado"
+  "produto nao informado"
+  "loja nao informada"
+  "quantidade invalida"
+  "produto nao encontrado"
+  "produto inativo"
+
+---
+
+Camada: Dominio
+
+ResultadoDisponibilidade:
+  disponivel
+  motivo
+  produto_id
+  produto_nome
+  loja_id
+  quantidade_solicitada
+  saldo_atual
+  pode_avancar
+  deve_baixar_estoque
+  deve_notificar_gerente
+  deve_sugerir_alternativas
+  mensagem_cliente
+
+Motivos possiveis:
+  ESTOQUE_SUFICIENTE
+  ESTOQUE_INSUFICIENTE
+  SEM_ESTOQUE
+  PRODUTO_NAO_ENCONTRADO
+  PRODUTO_INATIVO
+  LOJA_NAO_INFORMADA
+  QUANTIDADE_INVALIDA
+  PEDIDO_INVALIDO
+
+Regras:
+  1. A validacao sempre deve consultar o saldo atual no repositorio_estoque.
+  2. Se nao existir registro de estoque para produto e loja, considerar saldo 0.
+  3. Produto inexistente nao permite avancar o pedido.
+  4. Produto inativo nao permite avancar o pedido.
+  5. Loja vazia ou nao informada nao permite avancar o pedido.
+  6. Quantidade vazia, zero, negativa ou invalida nao permite avancar o pedido.
+  7. Saldo igual a zero deve retornar motivo "SEM_ESTOQUE".
+  8. Quantidade maior que saldo atual deve retornar motivo "ESTOQUE_INSUFICIENTE".
+  9. Quantidade menor ou igual ao saldo atual deve retornar motivo "ESTOQUE_SUFICIENTE".
+  10. Nenhuma baixa de estoque ocorre nesta task.
+  11. Nenhuma movimentacao de estoque e registrada nesta task.
+  12. Nenhuma notificacao ao gerente e enviada nesta task.
+  13. Quando faltar estoque, o resultado apenas indica deve_sugerir_alternativas = verdadeiro.
+  14. A sugestao detalhada de alternativas pertence a task T-S3-C3-03.
+  15. A baixa automatica transacional pertence a task T-S3-C3-02.
+
+---
+
+Camada: Aplicacao
+
+Fluxo principal validar_disponibilidade_pedido(pedido, loja_id):
+  1. Validar pedido:
+     Se pedido nao existir:
+       Retornar ResultadoDisponibilidade com:
+         disponivel = falso
+         motivo = "PEDIDO_INVALIDO"
+         produto_id = vazio
+         produto_nome = vazio
+         loja_id = loja_id
+         quantidade_solicitada = vazio
+         saldo_atual = 0
+         pode_avancar = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         deve_sugerir_alternativas = falso
+         mensagem_cliente = "Nao encontrei um pedido em andamento."
+
+  2. Validar produto informado no pedido:
+     Se pedido.produto_id estiver vazio:
+       Retornar ResultadoDisponibilidade com:
+         disponivel = falso
+         motivo = "PRODUTO_NAO_ENCONTRADO"
+         produto_id = vazio
+         produto_nome = vazio
+         loja_id = loja_id
+         quantidade_solicitada = pedido.quantidade
+         saldo_atual = 0
+         pode_avancar = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         deve_sugerir_alternativas = falso
+         mensagem_cliente = "Produto nao encontrado. Informe outro produto para continuar."
+
+  3. Validar quantidade informada:
+     resultado_quantidade = validar_quantidade(pedido.quantidade).
+     Se resultado_quantidade for invalido:
+       Retornar ResultadoDisponibilidade com:
+         disponivel = falso
+         motivo = "QUANTIDADE_INVALIDA"
+         produto_id = pedido.produto_id
+         produto_nome = pedido.produto_nome
+         loja_id = loja_id
+         quantidade_solicitada = pedido.quantidade
+         saldo_atual = 0
+         pode_avancar = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         deve_sugerir_alternativas = falso
+         mensagem_cliente = "Informe uma quantidade valida, maior que zero."
+
+  4. Validar loja:
+     Se loja_id estiver vazio:
+       Retornar ResultadoDisponibilidade com:
+         disponivel = falso
+         motivo = "LOJA_NAO_INFORMADA"
+         produto_id = pedido.produto_id
+         produto_nome = pedido.produto_nome
+         loja_id = vazio
+         quantidade_solicitada = pedido.quantidade
+         saldo_atual = 0
+         pode_avancar = falso
+         deve_baixar_estoque = falso
+         deve_notificar_gerente = falso
+         deve_sugerir_alternativas = falso
+         mensagem_cliente = "Nao foi possivel identificar a loja para consultar o estoque."
+
+  5. Buscar produto:
+     produto = repositorio_produtos.buscar_por_id(pedido.produto_id).
+
+  6. Validar produto existente:
+     resultado_produto = validar_produto_existente(produto, pedido, loja_id).
+     Se resultado_produto for indisponivel:
+       Retornar resultado_produto.
+
+  7. Validar produto ativo:
+     resultado_produto_ativo = validar_produto_ativo(produto, pedido, loja_id).
+     Se resultado_produto_ativo for indisponivel:
+       Retornar resultado_produto_ativo.
+
+  8. Consultar saldo atual em tempo real:
+     saldo_atual = consultar_saldo_atual(produto.id, loja_id).
+
+  9. Comparar saldo com quantidade:
+     resultado = comparar_saldo_com_quantidade(
+       produto,
+       loja_id,
+       saldo_atual,
+       pedido.quantidade
+     ).
+
+  10. Retornar resultado estruturado.
+
+---
+
+Fluxo auxiliar validar_produto_existente(produto, pedido, loja_id):
+  1. Se produto existir:
+     Retornar "produto valido".
+
+  2. Se produto nao existir:
+     Retornar ResultadoDisponibilidade com:
+       disponivel = falso
+       motivo = "PRODUTO_NAO_ENCONTRADO"
+       produto_id = pedido.produto_id
+       produto_nome = pedido.produto_nome
+       loja_id = loja_id
+       quantidade_solicitada = pedido.quantidade
+       saldo_atual = 0
+       pode_avancar = falso
+       deve_baixar_estoque = falso
+       deve_notificar_gerente = falso
+       deve_sugerir_alternativas = falso
+       mensagem_cliente = "Nao encontrei esse produto. Pode informar outro produto?"
+
+  3. Garantias:
+     O pedido nao avanca para confirmacao.
+     Nenhuma baixa de estoque ocorre.
+     Nenhuma notificacao ao gerente e enviada.
+
+---
+
+Fluxo auxiliar validar_produto_ativo(produto, pedido, loja_id):
+  1. Se produto.status for "ATIVO":
+     Retornar "produto ativo".
+
+  2. Se produto.status for diferente de "ATIVO":
+     Retornar ResultadoDisponibilidade com:
+       disponivel = falso
+       motivo = "PRODUTO_INATIVO"
+       produto_id = produto.id
+       produto_nome = produto.nome
+       loja_id = loja_id
+       quantidade_solicitada = pedido.quantidade
+       saldo_atual = 0
+       pode_avancar = falso
+       deve_baixar_estoque = falso
+       deve_notificar_gerente = falso
+       deve_sugerir_alternativas = falso
+       mensagem_cliente = "Este produto nao esta disponivel para venda."
+
+  3. Garantias:
+     O pedido nao avanca para confirmacao.
+     Nenhuma baixa de estoque ocorre.
+     Nenhuma notificacao ao gerente e enviada.
+
+---
+
+Fluxo auxiliar validar_quantidade(quantidade_solicitada):
+  1. Se quantidade_solicitada estiver vazia:
+     Retornar "quantidade invalida".
+
+  2. Se quantidade_solicitada nao for numero:
+     Retornar "quantidade invalida".
+
+  3. Se quantidade_solicitada for menor ou igual a zero:
+     Retornar "quantidade invalida".
+
+  4. Caso contrario:
+     Retornar "quantidade valida".
+
+---
+
+Fluxo auxiliar consultar_saldo_atual(produto_id, loja_id):
+  1. Buscar estoque:
+     estoque = repositorio_estoque.buscar_por_produto_e_loja(produto_id, loja_id).
+
+  2. Se estoque nao existir:
+     Retornar 0.
+
+  3. Se estoque existir:
+     Retornar estoque.quantidade_atual.
+
+  4. Observacao:
+     Este saldo e uma consulta em tempo real.
+     Nao representa reserva de estoque.
+     O saldo pode mudar antes da confirmacao final.
+
+---
+
+Fluxo auxiliar comparar_saldo_com_quantidade(produto, loja_id, saldo_atual, quantidade_solicitada):
+  1. Se saldo_atual for igual a zero:
+     Retornar montar_resposta_produto_sem_estoque(produto, loja_id, quantidade_solicitada).
+
+  2. Se quantidade_solicitada for maior que saldo_atual:
+     Retornar montar_resposta_estoque_insuficiente(
+       produto,
+       loja_id,
+       saldo_atual,
+       quantidade_solicitada
+     ).
+
+  3. Se quantidade_solicitada for menor ou igual a saldo_atual:
+     Retornar montar_resposta_disponivel(
+       produto,
+       loja_id,
+       saldo_atual,
+       quantidade_solicitada
+     ).
+
+---
+
+Fluxo auxiliar montar_resposta_estoque_insuficiente(produto, loja_id, saldo_atual, quantidade_solicitada):
+  1. Retornar ResultadoDisponibilidade com:
+     disponivel = falso
+     motivo = "ESTOQUE_INSUFICIENTE"
+     produto_id = produto.id
+     produto_nome = produto.nome
+     loja_id = loja_id
+     quantidade_solicitada = quantidade_solicitada
+     saldo_atual = saldo_atual
+     pode_avancar = falso
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     deve_sugerir_alternativas = verdadeiro
+     mensagem_cliente = "Temos apenas " + saldo_atual + " unidade(s) de " + produto.nome + ". Escolha uma quantidade menor ou outro produto."
+
+  2. Garantias:
+     O pedido nao deve ser confirmado.
+     Nenhuma baixa de estoque ocorre.
+     Nenhuma movimentacao de estoque e registrada.
+     Nenhuma notificacao ao gerente e enviada.
+
+---
+
+Fluxo auxiliar montar_resposta_produto_sem_estoque(produto, loja_id, quantidade_solicitada):
+  1. Retornar ResultadoDisponibilidade com:
+     disponivel = falso
+     motivo = "SEM_ESTOQUE"
+     produto_id = produto.id
+     produto_nome = produto.nome
+     loja_id = loja_id
+     quantidade_solicitada = quantidade_solicitada
+     saldo_atual = 0
+     pode_avancar = falso
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     deve_sugerir_alternativas = verdadeiro
+     mensagem_cliente = produto.nome + " esta indisponivel no momento."
+
+  2. Garantias:
+     O pedido nao deve ser confirmado.
+     Nenhuma baixa de estoque ocorre.
+     Nenhuma movimentacao de estoque e registrada.
+     Nenhuma notificacao ao gerente e enviada.
+     A sugestao de alternativas deve ser tratada pela task T-S3-C3-03.
+
+---
+
+Fluxo auxiliar montar_resposta_disponivel(produto, loja_id, saldo_atual, quantidade_solicitada):
+  1. Retornar ResultadoDisponibilidade com:
+     disponivel = verdadeiro
+     motivo = "ESTOQUE_SUFICIENTE"
+     produto_id = produto.id
+     produto_nome = produto.nome
+     loja_id = loja_id
+     quantidade_solicitada = quantidade_solicitada
+     saldo_atual = saldo_atual
+     pode_avancar = verdadeiro
+     deve_baixar_estoque = falso
+     deve_notificar_gerente = falso
+     deve_sugerir_alternativas = falso
+     mensagem_cliente = produto.nome + " esta disponivel para o pedido."
+
+  2. Garantias:
+     O pedido pode avancar para resumo ou confirmacao conforme o estado do fluxo.
+     Nenhuma baixa de estoque ocorre nesta task.
+     A baixa deve ocorrer somente na task T-S3-C3-02 apos confirmacao valida.
+
+---
+
+Validacao em tempo real e concorrencia:
+  1. Esta validacao consulta o saldo atual no momento em que for chamada.
+  2. Esta validacao deve ser chamada durante a montagem ou resumo do pedido.
+  3. Esta validacao deve ser chamada novamente antes da confirmacao final.
+  4. Esta validacao nao reserva estoque.
+  5. Esta validacao nao trava saldo.
+  6. Dois clientes podem passar por esta validacao ao mesmo tempo.
+  7. A consistencia final depende da baixa automatica transacional da task T-S3-C3-02.
+  8. A baixa transacional deve validar o saldo novamente antes de baixar.
+  9. Se a baixa transacional identificar saldo insuficiente, ela deve recusar a baixa.
+  10. Nenhum saldo negativo deve ser permitido pela integracao final.
+
+---
+
+Camada: Infraestrutura
+
+Integracoes usadas:
+  repositorio_produtos:
+    buscar_por_id(produto_id)
+
+  repositorio_estoque:
+    buscar_por_produto_e_loja(produto_id, loja_id)
+
+Integracoes conceituais:
+  maquina_estados_pedido:
+    Deve chamar esta validacao antes de avancar para resumo ou confirmacao.
+
+  confirmacao_cancelamento_pedido:
+    Deve chamar esta validacao novamente antes de confirmar em definitivo.
+
+  falta_alternativas:
+    Deve ser acionada quando deve_sugerir_alternativas = verdadeiro.
+
+  baixa_automatica_transacional:
+    Deve executar a baixa somente apos confirmacao valida.
+    Deve validar o saldo novamente antes de baixar.
+    Nao e executada nesta task.
+
+---
+
+Exemplos de resultado:
+
+Resultado para estoque suficiente:
+  disponivel = verdadeiro
+  motivo = "ESTOQUE_SUFICIENTE"
+  pode_avancar = verdadeiro
+  deve_baixar_estoque = falso
+  deve_notificar_gerente = falso
+  deve_sugerir_alternativas = falso
+
+Resultado para estoque insuficiente:
+  disponivel = falso
+  motivo = "ESTOQUE_INSUFICIENTE"
+  pode_avancar = falso
+  deve_baixar_estoque = falso
+  deve_notificar_gerente = falso
+  deve_sugerir_alternativas = verdadeiro
+
+Resultado para produto sem estoque:
+  disponivel = falso
+  motivo = "SEM_ESTOQUE"
+  pode_avancar = falso
+  deve_baixar_estoque = falso
+  deve_notificar_gerente = falso
+  deve_sugerir_alternativas = verdadeiro
+
+Resultado para produto inexistente:
+  disponivel = falso
+  motivo = "PRODUTO_NAO_ENCONTRADO"
+  pode_avancar = falso
+  deve_baixar_estoque = falso
+  deve_notificar_gerente = falso
+  deve_sugerir_alternativas = falso
+
+---
+
+Rastreabilidade:
+  tests/chatbot/estoque_insuficiente_test.txt
+  tests/chatbot/fluxo_pedido_test.txt
