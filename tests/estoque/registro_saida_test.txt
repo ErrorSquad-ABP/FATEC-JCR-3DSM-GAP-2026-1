@@ -26,3 +26,50 @@ Cenario: rejeitar saida para produto ou loja inexistente
   Dado que o sistema esta operacional
   Quando o gerente informar dados de uma loja nao cadastrada
   Entao o sistema deve retornar erro "loja nao encontrada"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_registro_saida():
+  1. cenario_saida_sucesso()
+  2. cenario_saida_saldo_insuficiente()
+  3. cenario_saida_quantidade_invalida()
+  4. cenario_saida_loja_inexistente()
+  5. retornar "sucesso"
+
+Funcao cenario_saida_sucesso():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  dado saldo_inicial = 10
+  quando resultado = registrar_saida(produto, loja, 4, "VENDA")
+  entao assert resultado.sucesso == verdadeiro
+  entao assert buscar_saldo(produto, loja) == 6
+  entao assert buscar_ultimo_log().tipo == "SAIDA"
+  entao assert buscar_ultimo_log().motivo == "VENDA"
+
+Funcao cenario_saida_saldo_insuficiente():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  dado saldo_inicial = 3
+  quando resultado = registrar_saida(produto, loja, 5, "VENDA")
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "saldo insuficiente"
+  entao assert buscar_saldo(produto, loja) == 3
+
+Funcao cenario_saida_quantidade_invalida():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  quando resultado = registrar_saida(produto, loja, -1, "PERDA")
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "quantidade deve ser maior que zero"
+
+Funcao cenario_saida_loja_inexistente():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-INEXISTENTE"
+  quando resultado = registrar_saida(produto, loja, 1, "VENDA")
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "loja nao encontrada"
+
+Rastreabilidade:
+  src/estoque/registro_saida.txt

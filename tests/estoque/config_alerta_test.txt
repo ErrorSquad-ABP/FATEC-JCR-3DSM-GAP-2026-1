@@ -20,3 +20,38 @@ Cenario: inicializar estoque minimo como zero para novos registros
   Dado que um novo registro de estoque esta sendo criado para "PROD-002" na "LOJA-01"
   Quando o registro for persistido
   Entao o campo estoque_minimo deve ser 0 por padrao
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_config_alerta():
+  1. cenario_config_sucesso()
+  2. cenario_config_negativa()
+  3. cenario_inicializacao_padrao()
+  4. retornar "sucesso"
+
+Funcao cenario_config_sucesso():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  quando resultado = configurar_estoque_minimo(produto, loja, 10)
+  entao assert resultado.sucesso == verdadeiro
+  entao assert buscar_estoque_minimo(produto, loja) == 10
+
+Funcao cenario_config_negativa():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  dado valor_anterior = buscar_estoque_minimo(produto, loja)
+  quando resultado = configurar_estoque_minimo(produto, loja, -1)
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "estoque minimo nao pode ser negativo"
+  entao assert buscar_estoque_minimo(produto, loja) == valor_anterior
+
+Funcao cenario_inicializacao_padrao():
+  dado produto = "PROD-NEW"
+  dado loja = "LOJA-01"
+  quando criar_registro_estoque(produto, loja)
+  entao assert buscar_estoque_minimo(produto, loja) == 0
+
+Rastreabilidade:
+  src/estoque/estoque_minimo.txt

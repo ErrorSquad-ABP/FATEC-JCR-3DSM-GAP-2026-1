@@ -29,3 +29,43 @@ Cenario: erro ao decrementar quantidade negativa ou zero
   Dado que o sistema recebeu uma solicitacao de decremento
   Quando a quantidade informada for 0
   Entao o sistema deve retornar erro "quantidade invalida para decremento"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_movimentacao_saldo():
+  1. cenario_incremento_sucesso()
+  2. cenario_decremento_sucesso()
+  3. cenario_incremento_negativo()
+  4. cenario_decremento_insuficiente()
+  5. cenario_decremento_zero()
+  6. retornar "sucesso"
+
+Funcao cenario_incremento_sucesso():
+  dado saldo = 10
+  quando novo_saldo = calcular_incremento(saldo, 5)
+  entao assert novo_saldo == 15
+
+Funcao cenario_decremento_sucesso():
+  dado saldo = 20
+  quando novo_saldo = calcular_decremento(saldo, 8)
+  entao assert novo_saldo == 12
+
+Funcao cenario_incremento_negativo():
+  dado saldo = 10
+  quando resultado = calcular_incremento(saldo, -5)
+  entao assert resultado.erro == "quantidade invalida para incremento"
+
+Funcao cenario_decremento_insuficiente():
+  dado saldo = 5
+  quando resultado = calcular_decremento(saldo, 6)
+  entao assert resultado.erro == "saldo insuficiente para decremento"
+
+Funcao cenario_decremento_zero():
+  dado saldo = 10
+  quando resultado = calcular_decremento(saldo, 0)
+  entao assert resultado.erro == "quantidade invalida para decremento"
+
+Rastreabilidade:
+  src/estoque/movimentacao_estoque.txt

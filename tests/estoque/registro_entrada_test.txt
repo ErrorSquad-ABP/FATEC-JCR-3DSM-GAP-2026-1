@@ -26,3 +26,47 @@ Cenario: rejeitar entrada para produto inexistente
   Dado que a loja "LOJA-01" existe
   Quando o gerente tentar registrar entrada para o produto "PROD-999" (inexistente)
   Entao o sistema deve retornar erro "produto nao encontrado"
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_testes_registro_entrada():
+  1. cenario_entrada_sucesso()
+  2. cenario_entrada_quantidade_invalida()
+  3. cenario_entrada_loja_inexistente()
+  4. cenario_entrada_produto_inexistente()
+  5. retornar "sucesso"
+
+Funcao cenario_entrada_sucesso():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  dado saldo_inicial = 10
+  quando resultado = registrar_entrada(produto, loja, 5)
+  entao assert resultado.sucesso == verdadeiro
+  entao assert buscar_saldo(produto, loja) == 15
+  entao assert buscar_ultimo_log().tipo == "ENTRADA"
+
+Funcao cenario_entrada_quantidade_invalida():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-01"
+  quando resultado = registrar_entrada(produto, loja, 0)
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "quantidade deve ser maior que zero"
+
+Funcao cenario_entrada_loja_inexistente():
+  dado produto = "PROD-001"
+  dado loja = "LOJA-99"
+  quando resultado = registrar_entrada(produto, loja, 5)
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "loja nao encontrada"
+
+Funcao cenario_entrada_produto_inexistente():
+  dado produto = "PROD-999"
+  dado loja = "LOJA-01"
+  quando resultado = registrar_entrada(produto, loja, 5)
+  entao assert resultado.sucesso == falso
+  entao assert resultado.erro == "produto nao encontrado"
+
+Rastreabilidade:
+  src/estoque/registro_entrada.txt
