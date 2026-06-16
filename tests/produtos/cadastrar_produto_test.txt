@@ -1,0 +1,35 @@
+CENÁRIO: Cadastro de produto válido
+
+DADO usuário autenticado
+QUANDO cadastrar produto com dados válidos
+ENTÃO produto deve ser salvo
+
+CENÁRIO: Cadastro com código de barras duplicado
+
+DADO produto previamente cadastrado
+QUANDO cadastrar novo produto com mesmo código
+ENTÃO operação deve falhar
+
+CENÁRIO: Cadastro com preço inválido
+
+DADO usuário autenticado
+QUANDO informar preço menor ou igual a zero
+ENTÃO cadastro deve ser rejeitado
+
+CENÁRIO: Edição de produto
+
+DADO produto existente
+QUANDO alterar preço
+ENTÃO novo preço deve ser persistido
+
+CENÁRIO: Filtro por categoria
+
+DADO produtos de múltiplas categorias
+QUANDO filtrar categoria "Bebidas"
+ENTÃO apenas produtos da categoria devem ser retornados
+
+CENÁRIO: Exclusão de produto
+
+DADO produto existente
+QUANDO solicitar exclusão
+ENTÃO produto deve ser removido da base
