@@ -44,3 +44,73 @@ Dado que o sistema separa estoque por unidade
 Quando o mockup de lojas for revisado
 Entao ele deve listar Loja 1 a Loja 5 com IDs LOJA-01 a LOJA-05
 E deve permitir selecionar uma loja para consultar estoque
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_mockups_telas_principais():
+  1. cenario_mockups_obrigatorios_existentes()
+  2. cenario_login_autenticacao_basica()
+  3. cenario_dashboard_visao_estoque()
+  4. cenario_produtos_listagem_filtros()
+  5. cenario_produto_cadastro_campos()
+  6. cenario_lojas_unidades_consulta()
+  7. retornar "todos os cenarios executados"
+
+Funcao cenario_mockups_obrigatorios_existentes():
+  dado arquivos = [
+    "docs/design/mockups/01_login.md",
+    "docs/design/mockups/02_dashboard.md",
+    "docs/design/mockups/03_produtos_listagem.md",
+    "docs/design/mockups/04_produto_cadastro.md",
+    "docs/design/mockups/05_lojas.md"
+  ]
+  para cada arquivo em arquivos:
+    quando existe = verificar_arquivo(arquivo)
+    entao assert existe == verdadeiro
+
+Funcao cenario_login_autenticacao_basica():
+  dado mockup = ler_arquivo("docs/design/mockups/01_login.md")
+  entao assert mockup contem "usuario"
+  entao assert mockup contem "senha"
+  entao assert mockup contem "entrar"
+  entao assert mockup contem "credenciais invalidas"
+
+Funcao cenario_dashboard_visao_estoque():
+  dado mockup = ler_arquivo("docs/design/mockups/02_dashboard.md")
+  entao assert mockup contem "Loja 1"
+  entao assert mockup contem "Loja 5"
+  entao assert mockup contem "Produtos"
+  entao assert mockup contem "Lojas"
+  entao assert mockup contem "Estoque"
+
+Funcao cenario_produtos_listagem_filtros():
+  dado mockup = ler_arquivo("docs/design/mockups/03_produtos_listagem.md")
+  entao assert mockup contem "filtro por nome"
+  entao assert mockup contem "categoria"
+  entao assert mockup contem "preco"
+  entao assert mockup contem "quantidade total"
+
+Funcao cenario_produto_cadastro_campos():
+  dado mockup = ler_arquivo("docs/design/mockups/04_produto_cadastro.md")
+  entao assert mockup contem "nome"
+  entao assert mockup contem "descricao"
+  entao assert mockup contem "categoria"
+  entao assert mockup contem "preco"
+  entao assert mockup contem "quantidade inicial"
+  entao assert mockup contem "salvar"
+  entao assert mockup contem "cancelar"
+
+Funcao cenario_lojas_unidades_consulta():
+  dado mockup = ler_arquivo("docs/design/mockups/05_lojas.md")
+  entao assert mockup contem "LOJA-01"
+  entao assert mockup contem "LOJA-05"
+  entao assert mockup contem "consultar estoque"
+
+Rastreabilidade:
+  docs/design/mockups/01_login.md
+  docs/design/mockups/02_dashboard.md
+  docs/design/mockups/03_produtos_listagem.md
+  docs/design/mockups/04_produto_cadastro.md
+  docs/design/mockups/05_lojas.md

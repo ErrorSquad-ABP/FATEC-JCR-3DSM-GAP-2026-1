@@ -31,3 +31,49 @@ Cenario: CI aprova os testes atuais da Sprint 1
 Dado que existem specs para estrutura, arquitetura e mockups
 Quando o runner for executado no estado atual do repositorio
 Entao ele deve aprovar os arquivos de teste existentes
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_workflow_tdd_pseudocodigo():
+  1. cenario_workflow_ci_existe()
+  2. cenario_ci_valida_testes_pseudocodigo()
+  3. cenario_ci_falha_sem_testes()
+  4. cenario_ci_falha_sem_cenario()
+  5. cenario_ci_aprova_testes_sprint_1()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_workflow_ci_existe():
+  dado workflow = ler_arquivo(".github/workflows/ci.yml")
+  entao assert workflow contem "pull_request"
+  entao assert workflow contem "push"
+  entao assert workflow contem "main"
+
+Funcao cenario_ci_valida_testes_pseudocodigo():
+  dado workflow = ler_arquivo(".github/workflows/ci.yml")
+  dado runner = ler_arquivo("scripts/run_pseudocode_tests.ps1")
+  entao assert workflow contem "./scripts/run_pseudocode_tests.ps1"
+  entao assert runner contem "TestsPath = \"tests\""
+  entao assert runner contem "_test\\.(txt|md)$"
+  entao assert runner contem "^Cenario:"
+
+Funcao cenario_ci_falha_sem_testes():
+  dado runner = ler_arquivo("scripts/run_pseudocode_tests.ps1")
+  entao assert runner contem "Nenhum arquivo de teste em pseudocodigo"
+  entao assert runner contem "exit 1"
+
+Funcao cenario_ci_falha_sem_cenario():
+  dado runner = ler_arquivo("scripts/run_pseudocode_tests.ps1")
+  entao assert runner contem "Arquivos de teste sem 'Cenario:'"
+  entao assert runner contem "exit 1"
+
+Funcao cenario_ci_aprova_testes_sprint_1():
+  dado arquivos = listar_arquivos("tests", padrao = "_test.txt")
+  para cada arquivo em arquivos:
+    quando conteudo = ler_arquivo(arquivo)
+    entao assert conteudo contem "Cenario:"
+
+Rastreabilidade:
+  .github/workflows/ci.yml
+  scripts/run_pseudocode_tests.ps1

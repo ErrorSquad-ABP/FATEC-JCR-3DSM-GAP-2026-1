@@ -26,3 +26,39 @@ Dado que uma funcionalidade for adicionada em src/<modulo>/
 Quando seus testes forem adicionados
 Entao eles devem ficar em tests/<modulo>/
 E devem descrever cenario, entrada, passos e resultado esperado
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_estrutura_convencoes_repo():
+  1. cenario_estrutura_base_sprint_1()
+  2. cenario_convencao_pseudocodigo_documentada()
+  3. cenario_testes_acompanham_modulos()
+  4. retornar "todos os cenarios executados"
+
+Funcao cenario_estrutura_base_sprint_1():
+  dado pastas_obrigatorias = ["src", "tests", "docs", "docs/scrum"]
+  para cada pasta em pastas_obrigatorias:
+    quando existe = verificar_pasta(pasta)
+    entao assert existe == verdadeiro
+
+Funcao cenario_convencao_pseudocodigo_documentada():
+  dado documento = ler_arquivo("src/README.md")
+  entao assert documento contem "arquivos `.txt` ou `.md`"
+  entao assert documento contem "pastas por modulo"
+  entao assert documento contem "snake_case"
+  entao assert documento contem "Separar responsabilidades"
+
+Funcao cenario_testes_acompanham_modulos():
+  dado modulo = "auth"
+  quando caminho_src = "src/" + modulo
+  quando caminho_tests = "tests/" + modulo
+  entao assert verificar_pasta(caminho_src) == verdadeiro
+  entao assert verificar_pasta(caminho_tests) == verdadeiro
+  entao assert padrao_teste_contem_cenario_entrada_passos_resultado() == verdadeiro
+
+Rastreabilidade:
+  README.md
+  src/README.md
+  docs/scrum/sprint_backlog/sprint_backlog_ze_mercearia.md

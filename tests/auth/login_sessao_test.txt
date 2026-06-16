@@ -42,3 +42,67 @@ Dado que uma sessao ATIVA foi criada para "gerente_loja_01"
 Quando o usuario solicitar logout
 Entao a sessao deve mudar para ENCERRADA
 E o token nao deve mais ser considerado valido
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_login_sessao():
+  1. cenario_login_valido_cria_sessao()
+  2. cenario_rejeitar_login_inexistente()
+  3. cenario_rejeitar_senha_incorreta()
+  4. cenario_rejeitar_usuario_inativo()
+  5. cenario_validar_token_ativo()
+  6. cenario_encerrar_sessao()
+  7. retornar "todos os cenarios executados"
+
+Funcao cenario_login_valido_cria_sessao():
+  dado usuario = usuario_ativo("USU-001", "gerente_loja_01", "hash_senha_demo", "GERENTE")
+  dado repositorio_usuarios contem usuario
+  quando resultado = autenticar_usuario("gerente_loja_01", "senha_demo")
+  entao assert resultado.status == "sucesso"
+  entao assert resultado.usuario_id == "USU-001"
+  entao assert resultado.papel == "GERENTE"
+  entao assert resultado.token == "token_USU-001_SES-001"
+  entao assert repositorio_sessoes contem sessao status "ATIVA"
+
+Funcao cenario_rejeitar_login_inexistente():
+  dado repositorio_usuarios = lista vazia
+  quando resultado = autenticar_usuario("nao_existe", "senha_demo")
+  entao assert resultado.erro == "credenciais invalidas"
+  entao assert quantidade(repositorio_sessoes) == 0
+
+Funcao cenario_rejeitar_senha_incorreta():
+  dado usuario = usuario_ativo("USU-001", "gerente_loja_01", "hash_senha_demo", "GERENTE")
+  dado repositorio_usuarios contem usuario
+  quando resultado = autenticar_usuario("gerente_loja_01", "senha_errada")
+  entao assert resultado.erro == "credenciais invalidas"
+  entao assert quantidade(repositorio_sessoes) == 0
+
+Funcao cenario_rejeitar_usuario_inativo():
+  dado usuario = usuario_inativo("USU-002", "gerente_inativo", "hash_senha_demo", "GERENTE")
+  dado repositorio_usuarios contem usuario
+  quando resultado = autenticar_usuario("gerente_inativo", "senha_demo")
+  entao assert resultado.erro == "usuario inativo"
+  entao assert quantidade(repositorio_sessoes) == 0
+
+Funcao cenario_validar_token_ativo():
+  dado sessao = { id: "SES-001", usuario_id: "USU-001", token: "token_USU-001_SES-001", status: "ATIVA" }
+  dado repositorio_sessoes contem sessao
+  dado repositorio_usuarios contem usuario ativo "USU-001"
+  quando resultado = validar_token("token_USU-001_SES-001")
+  entao assert resultado.status == "sessao valida"
+  entao assert resultado.usuario_id == "USU-001"
+
+Funcao cenario_encerrar_sessao():
+  dado sessao = { id: "SES-001", usuario_id: "USU-001", token: "token_USU-001_SES-001", status: "ATIVA" }
+  dado repositorio_sessoes contem sessao
+  quando resultado = encerrar_sessao("token_USU-001_SES-001")
+  entao assert resultado.status == "sucesso"
+  entao assert sessao.status == "ENCERRADA"
+  entao assert validar_token("token_USU-001_SES-001").erro == "token invalido"
+
+Rastreabilidade:
+  src/auth/login_sessao.txt
+  src/auth/cadastro_usuario.txt
+  src/dominio/entidades_base.txt

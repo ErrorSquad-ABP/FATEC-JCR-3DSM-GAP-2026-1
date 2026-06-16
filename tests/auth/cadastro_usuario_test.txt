@@ -35,3 +35,62 @@ Dado que os papeis permitidos sao ADMIN e GERENTE
 Quando o administrador informar papel "CLIENTE"
 Entao o sistema deve retornar erro "papel invalido"
 E nenhum usuario deve ser persistido
+
+---
+
+Pseudo teste executavel:
+
+Funcao executar_teste_cadastro_usuario():
+  1. cenario_cadastrar_gerente_valido()
+  2. cenario_rejeitar_sem_login()
+  3. cenario_rejeitar_sem_senha()
+  4. cenario_rejeitar_login_duplicado()
+  5. cenario_rejeitar_papel_invalido()
+  6. retornar "todos os cenarios executados"
+
+Funcao cenario_cadastrar_gerente_valido():
+  dado repositorio_usuarios = lista vazia
+  dado dados = {
+    nome: "Gerente Loja 1",
+    login: "gerente_loja_01",
+    senha: "senha_demo",
+    papel: "GERENTE"
+  }
+  quando resultado = cadastrar_usuario(dados)
+  entao assert resultado.status == "sucesso"
+  entao assert resultado.usuario.id == "USU-001"
+  entao assert resultado.usuario.status == "ATIVO"
+  entao assert resultado.usuario.senha_hash == "hash_senha_demo"
+  entao assert quantidade(repositorio_usuarios) == 1
+
+Funcao cenario_rejeitar_sem_login():
+  dado repositorio_usuarios = lista vazia
+  dado dados = { nome: "Gerente Loja 1", login: "", senha: "senha_demo", papel: "GERENTE" }
+  quando resultado = cadastrar_usuario(dados)
+  entao assert resultado.erro == "login e obrigatorio"
+  entao assert quantidade(repositorio_usuarios) == 0
+
+Funcao cenario_rejeitar_sem_senha():
+  dado repositorio_usuarios = lista vazia
+  dado dados = { nome: "Gerente Loja 1", login: "gerente_loja_01", senha: "", papel: "GERENTE" }
+  quando resultado = cadastrar_usuario(dados)
+  entao assert resultado.erro == "senha e obrigatoria"
+  entao assert quantidade(repositorio_usuarios) == 0
+
+Funcao cenario_rejeitar_login_duplicado():
+  dado repositorio_usuarios contem usuario com login "gerente_loja_01"
+  dado dados = { nome: "Outro Gerente", login: "gerente_loja_01", senha: "senha_demo", papel: "GERENTE" }
+  quando resultado = cadastrar_usuario(dados)
+  entao assert resultado.erro == "login ja cadastrado"
+  entao assert quantidade(repositorio_usuarios) == 1
+
+Funcao cenario_rejeitar_papel_invalido():
+  dado repositorio_usuarios = lista vazia
+  dado dados = { nome: "Cliente Teste", login: "cliente_01", senha: "senha_demo", papel: "CLIENTE" }
+  quando resultado = cadastrar_usuario(dados)
+  entao assert resultado.erro == "papel invalido"
+  entao assert quantidade(repositorio_usuarios) == 0
+
+Rastreabilidade:
+  src/auth/cadastro_usuario.txt
+  src/dominio/entidades_base.txt
